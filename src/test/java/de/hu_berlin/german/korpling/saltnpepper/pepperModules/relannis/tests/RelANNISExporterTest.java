@@ -136,12 +136,13 @@ public class RelANNISExporterTest extends PepperExporterTest
 			SaltSample.createInformationStructureSpan(sDoc);
 			SaltSample.createInformationStructureAnnotations(sDoc);
 		//end: create sample
-		
+			Long timeToMapSDocument= System.nanoTime();
 		//start: exporting document
 			this.start();
 		//end: exporting document
-		
-		{//checking if export was correct
+			Long totalTimeToMapSDocument=  (System.nanoTime() - timeToMapSDocument);
+			System.out.println("Time needed for export: "+(float)totalTimeToMapSDocument/(float)1000000000 + " seconds");
+			{//checking if export was correct
 			//assertTrue("The files '"+expectedURI+"' and '"+currentURI+"' aren't identical. ", this.compareFiles(expectedURI, currentURI));
 		}
 	}
