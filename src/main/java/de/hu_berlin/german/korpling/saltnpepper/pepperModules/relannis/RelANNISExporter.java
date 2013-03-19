@@ -26,11 +26,10 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.osgi.service.component.annotations.Component;
 import org.osgi.service.log.LogService;
 
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RACorpus;
@@ -49,7 +48,6 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructu
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SElementId;
 
 @Component(name="RelANNISExporterComponent", factory="PepperExporterComponentFactory")
-@Service(value=PepperExporter.class)
 public class RelANNISExporter extends PepperExporterImpl implements PepperExporter
 {	
 	public RelANNISExporter()
