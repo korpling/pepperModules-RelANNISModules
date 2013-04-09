@@ -105,7 +105,7 @@ public class RelANNISImporter extends PepperImporterImpl implements PepperImport
 //				throw new PepperModuleException("Cannot start converting, because no special parameters are set.");
 //			File specialParamFile= new File(this.getSpecialParams().toFileString());
 //			if (!specialParamFile.exists())
-//				throw new PepperModuleException("Cannot start converting, because the file for special parameters does not exists: "+ specialParamFile);
+//				throw new PepperModuleException("Cannot start converting, because the file for special parameters does not exist: "+ specialParamFile);
 //			if (!specialParamFile.isFile())
 //				throw new PepperModuleException("Cannot start converting, because the file for special parameters is not a file: "+ specialParamFile);
 		}
@@ -157,7 +157,7 @@ public class RelANNISImporter extends PepperImporterImpl implements PepperImport
 						}
 					}
 					if (raDocument== null)
-						throw new RelANNISModuleException("Cannot import the given document '"+docRaId+"', because it does not exists in relANNIS Model.");
+						throw new RelANNISModuleException("Cannot import the given document '"+docRaId+"', because it does not exist in relANNIS Model.");
 					if (raDocument.getRaDocumentGraph()==null)
 						throw new RelANNISModuleException("Cannot import the given document '"+docRaId+"', because no content has been load.");
 					RelANNIS2SaltMapper mapper= new RelANNIS2SaltMapper();
