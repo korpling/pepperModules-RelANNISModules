@@ -1500,7 +1500,13 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 							(currSNode instanceof SSpan)||
 							(currSNode instanceof SStructure))
 					{
+						if (this.sElementId2RANode== null)
+							throw new RelANNISModuleException("Might be a bug, no sElementId2RANode table exists.");
+						if (currSNode.getSElementId()== null)
+							throw new RelANNISModuleException("Might be a bug, no SElementId exists for node: "+ currSNode);
 						RANode raNode= this.sElementId2RANode.get(currSNode.getSElementId());
+						if (raNode.getRaLeft()== null)
+							throw new RelANNISModuleException("No raLeft value exists for node: "+ raNode+", corresponding sNode is: "+ currSNode);
 						this.currTravInfo.start= raNode.getRaLeft().intValue();
 						this.currTravInfo.end= raNode.getRaRight().intValue();
 					}
