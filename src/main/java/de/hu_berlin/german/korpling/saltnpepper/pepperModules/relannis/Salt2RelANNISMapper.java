@@ -42,7 +42,6 @@ import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RA_COMPONENT_TYPE;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RA_CORPUS_TYPE;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.relANNISFactory;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.resources.RelANNISResource;
-import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.resources.RelANNISWriter;
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperModule;
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperModuleController;
 import de.hu_berlin.german.korpling.saltnpepper.pepperModules.relannis.exceptions.RelANNISModuleException;
@@ -219,7 +218,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 				//set traversion type to corpus structure
 				this.currTraversionType= TRAVERSION_TYPE.CORPUS_STRUCTURE;
 				this.lastRACorpus= new Stack<RACorpus>();
-				this.getSCorpusGraph().traverse(roots, GRAPH_TRAVERSE_TYPE.TOP_DOWN_DEPTH_FIRST, "compute_corpus_structure", this);
+				this.getSCorpusGraph().traverse(roots, GRAPH_TRAVERSE_TYPE.TOP_DOWN_DEPTH_FIRST, "compute_corpus_structure", this, true);
 			}catch (Exception e) {
 				throw new RelANNISModuleException("Some error occurs while traversing corpus structure graph.", e);
 			}
@@ -442,12 +441,10 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 				for (SToken sToken: sTokens)
 				{
 					alreadyProcessedTokens++;
-					if (((alreadyProcessedTokens *100/ sTokens.size()) - percentage)>=2)
+					if (((alreadyProcessedTokens *100/ sTokens.size()) - percentage)>=percentageThreshold)
 					{
 						percentage= alreadyProcessedTokens *100/ sTokens.size();
 						currentProgress= currentProgress+ percentage* 0.20;
-//						if (this.getpModuleController()== null)	
-//							this.getpModuleController().notifyProgress(this.getsDocGraph().getSDocument().getSElementId(), currentProgress);
 						
 						if (this.getLogService()!= null)
 							this.getLogService().log(LogService.LOG_DEBUG, getsDocGraph().getSElementId()+ ": already processed tokens:  "+ percentage +"%...("+alreadyProcessedTokens+"/"+sTokens.size()+")");
@@ -559,6 +556,9 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 		//end: exporting all SNodes connected with SOrderRelation
 	}
 	
+	/** determines the threshold of process, which invokes a notification about it **/
+	private static final int percentageThreshold= 10;
+	
 	/**
 	 * 
 	 * @param roots
@@ -573,9 +573,9 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 			for (SNode subRoot: roots)
 			{//walk through every root
 				alreadyProcessedRoots++;
-				if (((alreadyProcessedRoots *100/ roots.size()) - percentage)>=5)
+				if (((alreadyProcessedRoots *100/ roots.size()) - percentage)>=percentageThreshold)
 				{//notify the pepper-framework about progress
-					percentage= alreadyProcessedRoots/ roots.size();
+					percentage= alreadyProcessedRoots * 100/ roots.size();
 					currentProgress= currentProgress+ percentage* factor;
 					
 					if (this.getLogService()!= null)

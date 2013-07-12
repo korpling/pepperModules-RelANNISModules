@@ -60,17 +60,11 @@ public class SOrderRelationTraverser implements SGraphTraverseHandler
 		{
 			String types= null;
 			types= sRelation.getSTypes().get(0);
-//			if (sRelation.getSTypes().size()==1)
-//				raNode.setSegment_name(sRelation.getSTypes().get(0));
 			if (sRelation.getSTypes().size()>1)
 			{
-//				String types= null;
 				for (int i=1; i< sRelation.getSTypes().size(); i++)
 				{
-//					if (i==0)
-//						types= sRelation.getSTypes().get(0);
-//					else
-						types= types+ ":"+ sRelation.getSTypes().get(i);
+					types= types+ ":"+ sRelation.getSTypes().get(i);
 				}
 				
 			}
