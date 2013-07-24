@@ -147,52 +147,7 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 			if (!isPreStarted)
 				this.preStartCorpusStructure();
 		//end: pre start corpus structure, if it wasn't
-		if (sElementId.getSIdentifiableElement() instanceof SCorpus)
-		{//export corpusStructure
-			Long timeToExportSCorpusStructure= System.nanoTime();
-			if (this.getLogService()!= null)
-				this.getLogService().log(LogService.LOG_DEBUG,this.getName()+" exporting corpus "+ sElementId.getSId());
-			
-			//start: map the graphs
-				SCorpusGraph sCorpGraph= null;
-				{//emit correct sCorpus graph object
-					if (this.getSaltProject().getSCorpusGraphs().size() > 1)
-						throw new RelANNISModuleException("Cannot work with more than one corpus structure graphs.");
-					sCorpGraph= (SCorpusGraph) this.getSaltProject().getSCorpusGraphs().get(0);
-				}//emit correct sCorpus graph object
-				Salt2RelANNISMapper mapper= new Salt2RelANNISMapper();
-				mapper.setpModuleController(this.getPepperModuleController());
-				mapper.setLogService(this.getLogService());
-				mapper.mapFinalSCorpusGraph2RACorpusGraph(sCorpGraph, this.raCorpusGraph, this.sElementId2RaId);
-			//end: map the graphs
-			
-			//start: save raCorpusGraph to resource
-				// create resource set and resource
-				ResourceSet resourceSet = new ResourceSetImpl();
-	
-				// Register XML resource factory
-				resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(null, new RelANNISResourceFactory());
-				Resource resource= resourceSet.createResource(this.getCorpusDefinition().getCorpusPath());
-				resource.getContents().add(raCorpusGraph);
-				Map<String, String> optionMap= new Hashtable<String, String>();
-				optionMap.put("SAVING_TYPE", "CORPUS_STRUCTURE");
-				if (options!= null)
-				{//copy special params to optionMap
-					for (Object key: options.keySet())
-					{
-						optionMap.put(key.toString(), options.getProperty(key.toString()));
-					}
-				}//copy special params to optionMap
-				try {
-					resource.save(optionMap);
-				} catch (IOException e) 
-				{
-					throw new RelANNISModuleException("Cannot save corpus structure of element '"+sElementId.getSId()+"' to resource.", e);
-				}
-			//end: save raCorpusGraph to resource
-			this.totalTimeToExportSCorpusStructure= this.totalTimeToExportSCorpusStructure +(System.nanoTime() - timeToExportSCorpusStructure);
-		}//export corpusStructure
-		else if (sElementId.getSIdentifiableElement() instanceof SDocument)
+		if (sElementId.getSIdentifiableElement() instanceof SDocument)
 		{//export documentStructure
 			Long timeToExportDocument= System.nanoTime();
 			if (this.getLogService()!= null)
@@ -319,6 +274,48 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 	public void end()
 	{
 		super.end();
+		
+		Long timeToExportSCorpusStructure= System.nanoTime();
+		
+		//start: map the graphs
+			SCorpusGraph sCorpGraph= null;
+			{//emit correct sCorpus graph object
+				if (this.getSaltProject().getSCorpusGraphs().size() > 1)
+					throw new RelANNISModuleException("Cannot work with more than one corpus structure graphs.");
+				sCorpGraph= (SCorpusGraph) this.getSaltProject().getSCorpusGraphs().get(0);
+			}//emit correct sCorpus graph object
+			Salt2RelANNISMapper mapper= new Salt2RelANNISMapper();
+			mapper.setpModuleController(this.getPepperModuleController());
+			mapper.setLogService(this.getLogService());
+			mapper.mapFinalSCorpusGraph2RACorpusGraph(sCorpGraph, this.raCorpusGraph, this.sElementId2RaId);
+		//end: map the graphs
+		
+		//start: save raCorpusGraph to resource
+			// create resource set and resource
+			ResourceSet resourceSet = new ResourceSetImpl();
+
+			// Register XML resource factory
+			resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(null, new RelANNISResourceFactory());
+			Resource resource= resourceSet.createResource(this.getCorpusDefinition().getCorpusPath());
+			resource.getContents().add(raCorpusGraph);
+			Map<String, String> optionMap= new Hashtable<String, String>();
+			optionMap.put("SAVING_TYPE", "CORPUS_STRUCTURE");
+			if (options!= null)
+			{//copy special params to optionMap
+				for (Object key: options.keySet())
+				{
+					optionMap.put(key.toString(), options.getProperty(key.toString()));
+				}
+			}//copy special params to optionMap
+			try {
+				resource.save(optionMap);
+			} catch (IOException e) 
+			{
+				throw new RelANNISModuleException("Cannot save corpus structure to resource.", e);
+			}
+		//end: save raCorpusGraph to resource
+		this.totalTimeToExportSCorpusStructure= this.totalTimeToExportSCorpusStructure +(System.nanoTime() - timeToExportSCorpusStructure);
+		
 		if (this.getLogService()!= null)
 		{	
 			StringBuffer msg= new StringBuffer();
