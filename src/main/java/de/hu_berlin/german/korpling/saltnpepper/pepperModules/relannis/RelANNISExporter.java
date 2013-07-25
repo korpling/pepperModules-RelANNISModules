@@ -41,7 +41,6 @@ import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperExceptions.PepperMo
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperExporter;
 import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.impl.PepperExporterImpl;
 import de.hu_berlin.german.korpling.saltnpepper.pepperModules.relannis.exceptions.RelANNISModuleException;
-import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpus;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpusGraph;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SDocument;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SDocumentGraph;
@@ -238,10 +237,10 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 			}//only export if document graph isn't null
 			this.totalTimeToExportSDocumentStructure= this.totalTimeToExportSDocumentStructure + (System.nanoTime() - timeToExportDocument);
 		}//export documentStructure
-		else 
-		{
-			throw new RelANNISModuleException("Cannot export the following elment with id '"+sElementId.getSId()+"', because it isn't of Type SCorpus or SDocument: "+ sElementId.getSIdentifiableElement());
-		}
+//		else 
+//		{
+//			throw new RelANNISModuleException("Cannot export the following elment with id '"+sElementId.getSId()+"', because it isn't of Type SCorpus or SDocument: "+ sElementId.getSIdentifiableElement());
+//		}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
