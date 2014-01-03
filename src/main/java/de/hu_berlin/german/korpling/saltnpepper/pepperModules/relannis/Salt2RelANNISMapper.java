@@ -48,6 +48,7 @@ import de.hu_berlin.german.korpling.saltnpepper.pepperModules.relannis.exception
 import de.hu_berlin.german.korpling.saltnpepper.salt.SaltFactory;
 import de.hu_berlin.german.korpling.saltnpepper.salt.graph.Edge;
 import de.hu_berlin.german.korpling.saltnpepper.salt.graph.GRAPH_TRAVERSE_TYPE;
+import de.hu_berlin.german.korpling.saltnpepper.salt.graph.Node;
 import de.hu_berlin.german.korpling.saltnpepper.salt.graph.exceptions.GraphInsertException;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpus;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpusGraph;
@@ -76,6 +77,7 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SNode;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SProcessingAnnotation;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SRelation;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SaltCoreFactory;
+import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.impl.SGraphImpl;
 
 public class Salt2RelANNISMapper implements SGraphTraverseHandler
 {
@@ -544,7 +546,16 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 							SOrderRelationTraverser traverser= new SOrderRelationTraverser();
 							traverser.sElementId2RANode= this.sElementId2RANode;
               traverser.segmentName = segmentName;
-							this.getsDocGraph().traverse(roots.get(segmentName), GRAPH_TRAVERSE_TYPE.TOP_DOWN_DEPTH_FIRST, "sOrderRelation", traverser, true);
+              
+              IterativeGraphTraverserModule traverserModule = new IterativeGraphTraverserModule();
+              traverserModule.setGraph(sDocGraph);
+              
+              STraverseHandlerWrapper wrapper = new STraverseHandlerWrapper();
+              wrapper.traverseHandler = traverser;
+              
+              traverserModule.traverse(
+                (EList<Node>)(EList<? extends Node>) roots.get(segmentName), 
+                GRAPH_TRAVERSE_TYPE.TOP_DOWN_DEPTH_FIRST, "sOrderRelation", wrapper, true);
 							alreadyProcessedRoots++;
 							percentage= alreadyProcessedRoots/ roots.size();
 							currentProgress= currentProgress+ percentage* 0.20;
