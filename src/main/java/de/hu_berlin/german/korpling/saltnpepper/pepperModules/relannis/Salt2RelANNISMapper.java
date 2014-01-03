@@ -531,7 +531,6 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 //			timeToMapPRComponents= System.nanoTime() - timeToMapPRComponents;
 			if (sDocGraph.getSOrderRelations().size()> 0)
 			{
-				
 				STYPE_NAME sType= SaltFactory.eINSTANCE.convertClazzToSTypeName(SOrderRelation.class);
 				Map<String, EList<SNode>> roots= this.getsDocGraph().getRootsBySRelationSType(sType);
 				if (roots!= null)
