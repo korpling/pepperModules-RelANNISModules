@@ -27,6 +27,7 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SElementId;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SGraphTraverseHandler;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SNode;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SRelation;
+import org.eclipse.emf.common.util.EList;
 
 public class SOrderRelationTraverser implements SGraphTraverseHandler
 {
@@ -39,6 +40,7 @@ public class SOrderRelationTraverser implements SGraphTraverseHandler
 	 * stores {@link SElementId} objects and corresponding {@link RANode}-objects.
 	 */
 	public Map<SElementId, RANode> sElementId2RANode= null;
+  public String segmentName = null;
 	
 	/**
 	 * The initial {@link RANode}  object, which must be root of segment path. In this case, it can not get a name that easy,
@@ -58,23 +60,15 @@ public class SOrderRelationTraverser implements SGraphTraverseHandler
 		}
 		if (sRelation!= null)
 		{
-			String types= null;
-			types= sRelation.getSTypes().get(0);
-			if (sRelation.getSTypes().size()>1)
-			{
-				for (int i=1; i< sRelation.getSTypes().size(); i++)
-				{
-					types= types+ ":"+ sRelation.getSTypes().get(i);
-				}
-				
-			}
-			raNode.setSegment_name(types);
+			raNode.setSegment_name(segmentName);
 			if (this.initialNode!= null)
-				this.initialNode.setSegment_name(types);
+				this.initialNode.setSegment_name(segmentName);
 		}
 		else
+    {
 			this.initialNode= raNode;
-		
+    }
+    
 		raNode.setLeftSegment(orderCounter);
 		raNode.setRightSegment(orderCounter);
 		orderCounter++;
@@ -96,9 +90,25 @@ public class SOrderRelationTraverser implements SGraphTraverseHandler
 			else
 			{
 				if (edge instanceof SOrderRelation)
-					return(true);
-				else return(false);
+        {
+          // check if the order relation belongs to the right segmentation chain
+          // as given by the segmentName
+          SOrderRelation orderRel = (SOrderRelation) edge;
+          EList<String> types = orderRel.getSTypes();
+          if(types != null)
+          {
+            for(String t : types)
+            {
+              if(t.equals(segmentName))
+              {
+                return(true);
+              }
+            }
+            
+          }
+        }
 			}
+      return(false);
 		}
 	}
 

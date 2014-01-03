@@ -543,6 +543,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 						try{
 							SOrderRelationTraverser traverser= new SOrderRelationTraverser();
 							traverser.sElementId2RANode= this.sElementId2RANode;
+              traverser.segmentName = segmentName;
 							this.getsDocGraph().traverse(roots.get(segmentName), GRAPH_TRAVERSE_TYPE.TOP_DOWN_DEPTH_FIRST, "sOrderRelation", traverser, true);
 							alreadyProcessedRoots++;
 							percentage= alreadyProcessedRoots/ roots.size();
