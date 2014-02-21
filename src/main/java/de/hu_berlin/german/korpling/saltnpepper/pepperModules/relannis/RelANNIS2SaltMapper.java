@@ -35,7 +35,7 @@ import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RARank;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RAText;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RA_COMPONENT_TYPE;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RA_CORPUS_TYPE;
-import de.hu_berlin.german.korpling.saltnpepper.pepperModules.relannis.exceptions.RelANNISModuleException;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.exceptions.PepperModuleException;
 import de.hu_berlin.german.korpling.saltnpepper.salt.graph.Edge;
 import de.hu_berlin.german.korpling.saltnpepper.salt.graph.Node;
 import de.hu_berlin.german.korpling.saltnpepper.salt.graph.modules.GraphTraverser;
@@ -142,9 +142,9 @@ public class RelANNIS2SaltMapper implements TraversalObject
 		this.setRaCorpusGraph(raCorpusGraph);
 		this.setSCorpusGraph(sCorpusGraph);
 		if (this.getRaCorpusGraph()== null)
-			throw new RelANNISModuleException("Cannot map raCorpusGraph to sCorpusGraph, because raCorpusGraph is null.");
+			throw new PepperModuleException("Cannot map raCorpusGraph to sCorpusGraph, because raCorpusGraph is null.");
 		if (this.getSCorpusGraph()== null)
-			throw new RelANNISModuleException("Cannot map raCorpusGraph to sCorpusGraph, because sCorpusGraph is null.");
+			throw new PepperModuleException("Cannot map raCorpusGraph to sCorpusGraph, because sCorpusGraph is null.");
 		
 		if (this.getsElementId2RaId()== null)
 			this.setsElementId2RaId(new Hashtable<SElementId, Long>());
@@ -154,7 +154,7 @@ public class RelANNIS2SaltMapper implements TraversalObject
 		EList<RACorpus> roots= this.getRaCorpusGraph().getRARoots();
 		if (	(roots== null) ||
 				(roots.size()== 0))
-			throw new RelANNISModuleException("Cannot traverse through corpus structure, because there is no raCOrpus-object as root.");
+			throw new PepperModuleException("Cannot traverse through corpus structure, because there is no raCOrpus-object as root.");
 		//set traversion type to corpus structure
 		this.currTraversionType= TRAVERSION_TYPE.CORPUS_STRUCTURE;
 		this.lastCorpus= new Stack<SCorpus>();
@@ -163,7 +163,7 @@ public class RelANNIS2SaltMapper implements TraversalObject
 		//look for exceptions while traversion
 		for (Exception e:  travObj.getExceptions())
 		{
-			throw new RelANNISModuleException("Some error occurs while traversing corpus structure graph.", e);
+			throw new PepperModuleException("Some error occurs while traversing corpus structure graph.", e);
 		}
 	}
 	
@@ -302,11 +302,11 @@ public class RelANNIS2SaltMapper implements TraversalObject
 	public void mapRACorpus2SDocument(RACorpus raCorpus, SDocument sDocument)
 	{
 		if (raCorpus== null)
-			throw new RelANNISModuleException("Cannot map the given RACorpus to SDocument, because RACorpus-object is null.");
+			throw new PepperModuleException("Cannot map the given RACorpus to SDocument, because RACorpus-object is null.");
 		if (raCorpus.getRaDocumentGraph()== null)
-			throw new RelANNISModuleException("Cannot map the given RACorpus to SDocument, because RACorpus-object '"+raCorpus.getRaId()+"' has no RADocumentGraph-object..");
+			throw new PepperModuleException("Cannot map the given RACorpus to SDocument, because RACorpus-object '"+raCorpus.getRaId()+"' has no RADocumentGraph-object..");
 		if (sDocument== null)
-			throw new RelANNISModuleException("Cannot map the given RACorpus to SDocument, because SDocument-object is null.");
+			throw new PepperModuleException("Cannot map the given RACorpus to SDocument, because SDocument-object is null.");
 		this.setRaDocumentGraph(raCorpus.getRaDocumentGraph());
 		sDocument.setSDocumentGraph(SaltCommonFactory.eINSTANCE.createSDocumentGraph());
 		sDocument.getSDocumentGraph().setSName(sDocument.getSName());
@@ -330,7 +330,7 @@ public class RelANNIS2SaltMapper implements TraversalObject
 			EList<RANode> roots= this.getRaDocumentGraph().getRARoots();
 			if (	(roots== null) ||
 					(roots.size()== 0))
-				throw new RelANNISModuleException("Cannot traverse through document structure, because there is no raCorpus-object as root.");
+				throw new PepperModuleException("Cannot traverse through document structure, because there is no raCorpus-object as root.");
 			//set traversion type to corpus structure
 			this.currTraversionType= TRAVERSION_TYPE.DOCUMENT_STRUCTURE;
 			this.raId2SNode= new Hashtable<Long, SNode>();
@@ -338,7 +338,7 @@ public class RelANNIS2SaltMapper implements TraversalObject
 			travObj.waitUntilFinished();
 			for (Exception e:  travObj.getExceptions())
 			{
-				throw new RelANNISModuleException("Some error occurs while traversing corpus structure graph.", e);
+				throw new PepperModuleException("Some error occurs while traversing corpus structure graph.", e);
 			}
 		}//traversion of document structure
 	}
@@ -363,9 +363,9 @@ public class RelANNIS2SaltMapper implements TraversalObject
 	protected void mapRANode2SToken(RANode raNode, SToken sToken)
 	{
 		if (raNode== null)
-			throw new RelANNISModuleException("Cannot map an empty RANode-object.");
+			throw new PepperModuleException("Cannot map an empty RANode-object.");
 		if (sToken== null)
-			throw new RelANNISModuleException("Cannot map an empty SToken-object.");
+			throw new PepperModuleException("Cannot map an empty SToken-object.");
 		sToken.setSName(raNode.getRaName());
 		for (RANodeAnnotation raNodeAnno: raNode.getRaAnnotations())
 		{	
@@ -388,13 +388,13 @@ public class RelANNIS2SaltMapper implements TraversalObject
 												STextualDS sText)
 	{
 		if (raNode== null)
-			throw new RelANNISModuleException("Cannot map an empty RANode.");
+			throw new PepperModuleException("Cannot map an empty RANode.");
 		if (sTextRel== null)
-			throw new RelANNISModuleException("Cannot map an empty STextualRelation-object.");
+			throw new PepperModuleException("Cannot map an empty STextualRelation-object.");
 		if (sText== null)
-			throw new RelANNISModuleException("Cannot map an empty STextualDS-object.");
+			throw new PepperModuleException("Cannot map an empty STextualDS-object.");
 		if (sToken== null)
-			throw new RelANNISModuleException("Cannot map an empty SToken-object.");
+			throw new PepperModuleException("Cannot map an empty SToken-object.");
 		sTextRel.setSStart(raNode.getRaLeft().intValue());
 		sTextRel.setSEnd(raNode.getRaRight().intValue());
 		sTextRel.setSToken(sToken);
@@ -410,9 +410,9 @@ public class RelANNIS2SaltMapper implements TraversalObject
 	protected void mapRANode2SSpan(RANode raNode, SSpan sSpan)
 	{
 		if (raNode== null)
-			throw new RelANNISModuleException("Cannot map an empty RANode-object.");
+			throw new PepperModuleException("Cannot map an empty RANode-object.");
 		if (sSpan== null)
-			throw new RelANNISModuleException("Cannot map an empty SSpan-object.");
+			throw new PepperModuleException("Cannot map an empty SSpan-object.");
 		sSpan.setSName(raNode.getRaName());
 		for (RANodeAnnotation raNodeAnno: raNode.getRaAnnotations())
 		{	
@@ -431,9 +431,9 @@ public class RelANNIS2SaltMapper implements TraversalObject
 	protected void mapRANode2SStructure(RANode raNode, SStructure sStructure)
 	{
 		if (raNode== null)
-			throw new RelANNISModuleException("Cannot map a RANode-object to SStructure-object with an empty RANode-object.");
+			throw new PepperModuleException("Cannot map a RANode-object to SStructure-object with an empty RANode-object.");
 		if (sStructure== null)
-			throw new RelANNISModuleException("Cannot map a RANode-object to SStructure-object with an empty SStructure-object.");
+			throw new PepperModuleException("Cannot map a RANode-object to SStructure-object with an empty SStructure-object.");
 		sStructure.setSName(raNode.getRaName());
 		for (RANodeAnnotation raNodeAnno: raNode.getRaAnnotations())
 		{	
@@ -457,13 +457,13 @@ public class RelANNIS2SaltMapper implements TraversalObject
 											SNode sTarget)
 	{
 		if (raRank== null)
-			throw new RelANNISModuleException("Cannot map a RARank-object to SRelation-object with an empty RARAnk-object.");
+			throw new PepperModuleException("Cannot map a RARank-object to SRelation-object with an empty RARAnk-object.");
 		if (sRel== null)
-			throw new RelANNISModuleException("Cannot map a RARank-object to SRelation-object with an empty SRelation-object.");
+			throw new PepperModuleException("Cannot map a RARank-object to SRelation-object with an empty SRelation-object.");
 		if (sSource== null)
-			throw new RelANNISModuleException("Cannot map a RARank-object to SRelation-object with an empty SNode-object as source.");
+			throw new PepperModuleException("Cannot map a RARank-object to SRelation-object with an empty SNode-object as source.");
 		if (sTarget== null)
-			throw new RelANNISModuleException("Cannot map a RARank-object to SRelation-object with an empty SNode-object as target.");
+			throw new PepperModuleException("Cannot map a RARank-object to SRelation-object with an empty SNode-object as target.");
 		if (sRel.getSSource()== null)
 			sRel.setSSource(sSource);
 		if (sRel.getSTarget()== null)
@@ -490,9 +490,9 @@ public class RelANNIS2SaltMapper implements TraversalObject
 	protected void mapRANodeAnnotation2SAnnotation(RANodeAnnotation raNodeAnno, SAnnotation sAnno)
 	{
 		if (raNodeAnno== null)
-			throw new RelANNISModuleException("Cannot map an empty RANodeAnnotation-object.");
+			throw new PepperModuleException("Cannot map an empty RANodeAnnotation-object.");
 		if (sAnno== null)
-			throw new RelANNISModuleException("Cannot map an empty SAnnotation-object.");
+			throw new PepperModuleException("Cannot map an empty SAnnotation-object.");
 		sAnno.setSNS(raNodeAnno.getRaNamespace());
 		sAnno.setSName(raNodeAnno.getRaName());
 		sAnno.setSValue(raNodeAnno.getRaValue());
@@ -506,9 +506,9 @@ public class RelANNIS2SaltMapper implements TraversalObject
 	protected void mapRAEdgeAnnotation2SAnnotation(RAEdgeAnnotation raEdgeAnno, SAnnotation sAnno)
 	{
 		if (raEdgeAnno== null)
-			throw new RelANNISModuleException("Cannot map an empty RAEdgeAnnotation-object.");
+			throw new PepperModuleException("Cannot map an empty RAEdgeAnnotation-object.");
 		if (sAnno== null)
-			throw new RelANNISModuleException("Cannot map an empty SAnnotation-object.");
+			throw new PepperModuleException("Cannot map an empty SAnnotation-object.");
 		sAnno.setSNS(raEdgeAnno.getRaNamespace());
 		sAnno.setSName(raEdgeAnno.getRaName());
 		sAnno.setSValue(raEdgeAnno.getRaValue());
@@ -641,7 +641,7 @@ public class RelANNIS2SaltMapper implements TraversalObject
 						(!this.hasVisited(raRank)))
 				{//map relations raRank is not visited and not null
 					if (raRank.getRaComponent()== null)
-						throw new RelANNISModuleException("Cannot map the given rank with pre '"+raRank.getRaPre()+"', because it has no corresponding component.");
+						throw new PepperModuleException("Cannot map the given rank with pre '"+raRank.getRaPre()+"', because it has no corresponding component.");
 					if (raRank.getRaComponent().getRaType().equals(RA_COMPONENT_TYPE.C))
 					{//coverage relations
 						SToken sToken= (SToken)this.raId2SNode.get(raRank.getRaNode().getRaId());
@@ -722,7 +722,7 @@ public class RelANNIS2SaltMapper implements TraversalObject
 	private void markAsVisited(RARank raRank)
 	{
 		if (raRank== null)
-			throw new RelANNISModuleException("Cannot mark an empty RARank-object as vistited.");
+			throw new PepperModuleException("Cannot mark an empty RARank-object as vistited.");
 		if (raRank.getSProcessingAnnotation("ra2saltMapper::visited")== null)
 		{
 			SProcessingAnnotation sProcAnno= SaltCommonFactory.eINSTANCE.createSProcessingAnnotation();
@@ -741,7 +741,7 @@ public class RelANNIS2SaltMapper implements TraversalObject
 	private boolean hasVisited(RARank raRank)
 	{
 		if (raRank== null)
-			throw new RelANNISModuleException("Cannot check if RARank-object has been visited, because it is empty.");
+			throw new PepperModuleException("Cannot check if RARank-object has been visited, because it is empty.");
 		Boolean retVal= false;
 		if (raRank.getSProcessingAnnotation("ra2Saltmapper::visited")!= null)
 		{
@@ -758,7 +758,7 @@ public class RelANNIS2SaltMapper implements TraversalObject
 	private void markAsVisited(RANode raNode)
 	{
 		if (raNode== null)
-			throw new RelANNISModuleException("Cannot mark an empty RANode-object as vistited.");
+			throw new PepperModuleException("Cannot mark an empty RANode-object as vistited.");
 		if (raNode.getSProcessingAnnotation("ra2saltMapper::visited")== null)
 		{
 			SProcessingAnnotation sProcAnno= SaltCommonFactory.eINSTANCE.createSProcessingAnnotation();
@@ -777,7 +777,7 @@ public class RelANNIS2SaltMapper implements TraversalObject
 	private boolean hasVisited(RANode raNode)
 	{
 		if (raNode== null)
-			throw new RelANNISModuleException("Cannot check if RANode-object has been visited, because it is empty.");
+			throw new PepperModuleException("Cannot check if RANode-object has been visited, because it is empty.");
 		Boolean retVal= false;
 		if (raNode.getSProcessingAnnotation("ra2Saltmapper::visited")!= null)
 		{
