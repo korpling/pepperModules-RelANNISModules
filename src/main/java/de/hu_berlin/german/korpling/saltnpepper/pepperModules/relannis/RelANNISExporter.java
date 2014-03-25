@@ -182,7 +182,7 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 								raDocument.setRaDocumentGraph(raDocGraph);
 							//end: adding document graph to docuement
 							//start: cleaning up
-								this.sDocument2Mapper.remove(sElementId);
+								this.sDocument2Mapper.remove(SaltFactory.eINSTANCE.getGlobalId(sElementId));
 								mapper= null;
 							//end: cleaning up	
 							this.totalTimeToMapSDocument= this.totalTimeToMapSDocument + (System.nanoTime() - timeToMapSDocument);
@@ -291,44 +291,48 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 					throw new PepperModuleException(this, "Cannot work with more than one corpus structure graphs.");
 				sCorpGraph= (SCorpusGraph) this.getSaltProject().getSCorpusGraphs().get(0);
 			}//emit correct sCorpus graph object
-			Salt2RelANNISMapper mapper= new Salt2RelANNISMapper();
-			mapper.setpModuleController(this.getModuleController());
-			mapper.mapFinalSCorpusGraph2RACorpusGraph(sCorpGraph, this.raCorpusGraph, this.sElementId2RaId);
-		//end: map the graphs
-		
-		//start: save raCorpusGraph to resource
-			// create resource set and resource
-			ResourceSet resourceSet = new ResourceSetImpl();
-
-			// Register XML resource factory
-			resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(null, new RelANNISResourceFactory());
-			Resource resource= resourceSet.createResource(this.getCorpusDesc().getCorpusPath());
-			resource.getContents().add(raCorpusGraph);
-			Map<String, String> optionMap= new Hashtable<String, String>();
-			optionMap.put("SAVING_TYPE", "CORPUS_STRUCTURE");
-			if (	(getProperties()!= null)&&
-					(getProperties().getProperties()!= null))
-			{//copy special params to optionMap
-				for (Object key: getProperties().getProperties().keySet())
+			
+			if (	(sCorpGraph!= null)&&
+					(sCorpGraph.getSCorpora().size()>0))
+			{//only, if corpus graph is not empty
+				Salt2RelANNISMapper mapper= new Salt2RelANNISMapper();
+				mapper.setpModuleController(this.getModuleController());
+				mapper.mapFinalSCorpusGraph2RACorpusGraph(sCorpGraph, this.raCorpusGraph, this.sElementId2RaId);
+			
+			//start: save raCorpusGraph to resource
+				// create resource set and resource
+				ResourceSet resourceSet = new ResourceSetImpl();
+	
+				// Register XML resource factory
+				resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(null, new RelANNISResourceFactory());
+				Resource resource= resourceSet.createResource(this.getCorpusDesc().getCorpusPath());
+				resource.getContents().add(raCorpusGraph);
+				Map<String, String> optionMap= new Hashtable<String, String>();
+				optionMap.put("SAVING_TYPE", "CORPUS_STRUCTURE");
+				if (	(getProperties()!= null)&&
+						(getProperties().getProperties()!= null))
+				{//copy special params to optionMap
+					for (Object key: getProperties().getProperties().keySet())
+					{
+						optionMap.put(key.toString(), getProperties().getProperties().getProperty(key.toString()));
+					}
+				}//copy special params to optionMap
+				try {
+					resource.save(optionMap);
+				} catch (IOException e) 
 				{
-					optionMap.put(key.toString(), getProperties().getProperties().getProperty(key.toString()));
+					throw new PepperModuleException(this, "Cannot save corpus structure to resource.", e);
 				}
-			}//copy special params to optionMap
-			try {
-				resource.save(optionMap);
-			} catch (IOException e) 
-			{
-				throw new PepperModuleException(this, "Cannot save corpus structure to resource.", e);
-			}
-		//end: save raCorpusGraph to resource
-		this.totalTimeToExportSCorpusStructure= this.totalTimeToExportSCorpusStructure +(System.nanoTime() - timeToExportSCorpusStructure);
-		
-		StringBuffer msg= new StringBuffer();
-		msg.append("needed time of "+this.getName()+":\n");
-		msg.append("\t time to export whole corpus-structure:\t\t\t\t"+ this.totalTimeToExportSCorpusStructure / 1000000+"\n");
-		msg.append("\t total time to export whole document structure:\t\t"+ totalTimeToExportSDocumentStructure / 1000000+"\n");
-		msg.append("\t total time to save all document-structures:\t\t"+ totalTimeToSaveSDocument / 1000000+"\n");
-		msg.append("\t total time to map all document-structure from salt:\t"+ totalTimeToMapSDocument / 1000000+"\n");
-		logger.debug(msg.toString());
+			//end: save raCorpusGraph to resource
+			this.totalTimeToExportSCorpusStructure= this.totalTimeToExportSCorpusStructure +(System.nanoTime() - timeToExportSCorpusStructure);
+			
+			StringBuffer msg= new StringBuffer();
+			msg.append("needed time of "+this.getName()+":\n");
+			msg.append("\t time to export whole corpus-structure:\t\t\t\t"+ this.totalTimeToExportSCorpusStructure / 1000000+"\n");
+			msg.append("\t total time to export whole document structure:\t\t"+ totalTimeToExportSDocumentStructure / 1000000+"\n");
+			msg.append("\t total time to save all document-structures:\t\t"+ totalTimeToSaveSDocument / 1000000+"\n");
+			msg.append("\t total time to map all document-structure from salt:\t"+ totalTimeToMapSDocument / 1000000+"\n");
+			logger.debug(msg.toString());
+		}
 	}
 }
