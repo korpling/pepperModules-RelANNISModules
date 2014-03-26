@@ -109,11 +109,6 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 		
 	}
 	
-//	/**
-//	 * Special params as properties.
-//	 */
-//	private Properties options= null;
-	
 	/**
 	 * Stores relation between SElementId and raId. 
 	 */
@@ -130,18 +125,6 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 			throw new PepperModuleException(this, "Cannot export an element with element id, which does not have an sIdentifiableElement settet.");
 		if (this.getCorpusDesc().getCorpusPath()== null)
 			throw new PepperModuleException(this, "Cannot export an the element '"+sElementId.getId()+"', because of no corpus path is set.");
-		
-//		if (this.getSpecialParams()!= null)
-//		{//init options
-//			File optionsFile= new File(this.getSpecialParams().toFileString());
-//			if (!optionsFile.exists())
-//				logger.warn("Cannot load special param file at location '"+optionsFile.getAbsolutePath()+"', because it does not exist.");
-//			else
-//			{
-//				this.options= new Properties();
-//				this.options.load(new FileInputStream(optionsFile));
-//			}
-//		}//init options
 		
 		//start: pre start corpus structure, if it wasn't
 			if (!isPreStarted)
@@ -236,10 +219,6 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 			}//only export if document graph isn't null
 			this.totalTimeToExportSDocumentStructure= this.totalTimeToExportSDocumentStructure + (System.nanoTime() - timeToExportDocument);
 		}//export documentStructure
-//		else 
-//		{
-//			throw new PepperModuleException(this, "Cannot export the following elment with id '"+sElementId.getSId()+"', because it isn't of Type SCorpus or SDocument: "+ sElementId.getSIdentifiableElement());
-//		}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -252,21 +231,6 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 	 * the {@link Salt2RelANNISMapper} object processing the {@link SDocument} object.
 	 */
 	private Map<String, Salt2RelANNISMapper> sDocument2Mapper= null;
-	
-	/**
-	 * Returns the progress of the {@link Salt2RelANNISMapper} processing the {@link SDocument} represented by the given 
-	 * {@link SElementId} object.
-	 * @param sDocumentId identifier for the {@link SDocument}. 
-	 */
-//	@Override
-//	public Double getProgress(SElementId sDocumentId)
-//	{
-//		Double retVal= null;
-//		Salt2RelANNISMapper mapper= this.sDocument2Mapper.get(sDocumentId);
-//		if (mapper!= null)
-//			retVal= mapper.getProgress();
-//		return(retVal);
-//	}
 	
 	@Override
 	public Double getProgress(String globalId) {
