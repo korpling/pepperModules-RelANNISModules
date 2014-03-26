@@ -17,30 +17,29 @@
  */
 package de.hu_berlin.german.korpling.saltnpepper.pepperModules.relannis;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.Properties;
 
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.log.LogService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RACorpus;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RACorpusGraph;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RADocumentGraph;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.relANNISFactory;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.resources.RelANNISResourceFactory;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperExceptions.PepperModuleException;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperExporter;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.impl.PepperExporterImpl;
-import de.hu_berlin.german.korpling.saltnpepper.pepperModules.relannis.exceptions.RelANNISModuleException;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.PepperExporter;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.PepperModuleProperties;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.exceptions.PepperModuleException;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.impl.PepperExporterImpl;
+import de.hu_berlin.german.korpling.saltnpepper.salt.SaltFactory;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpusGraph;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SDocument;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sDocumentStructure.SDocumentGraph;
@@ -49,15 +48,18 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SElementId;
 @Component(name="RelANNISExporterComponent", factory="PepperExporterComponentFactory")
 public class RelANNISExporter extends PepperExporterImpl implements PepperExporter
 {	
+	private static final Logger logger= LoggerFactory.getLogger(RelANNISExporter.class);
 	public RelANNISExporter()
 	{
 		super();
 
 		//setting name of module
-		this.name= "RelANNISExporter";
+		setName("RelANNISExporter");
 		//set list of formats supported by this module
 		this.addSupportedFormat("relANNIS", "3.1", null);
 		this.addSupportedFormat("relANNIS", "3.2", null);
+		
+		setProperties(new PepperModuleProperties());
 	}
 	
 	/**
@@ -91,27 +93,21 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 		SCorpusGraph sCorpGraph= null;
 		{//emit correct sCorpus graph object
 			if (this.getSaltProject()== null)
-				throw new RelANNISModuleException("Cannot start exporting, because no salt project is given.");
+				throw new PepperModuleException(this, "Cannot start exporting, because no salt project is given.");
 			if (this.getSaltProject().getSCorpusGraphs()== null)
-				throw new RelANNISModuleException("Cannot start exporting, because there are no corpus graphs in salt project to export.");
+				throw new PepperModuleException(this, "Cannot start exporting, because there are no corpus graphs in salt project to export.");
 			if (this.getSaltProject().getSCorpusGraphs().size() > 1)
-				throw new RelANNISModuleException("Cannot work with more than one corpus structure graphs.");
+				throw new PepperModuleException(this, "Cannot work with more than one corpus structure graphs.");
 			sCorpGraph= (SCorpusGraph) this.getSaltProject().getSCorpusGraphs().get(0);
 		}//emit correct sCorpus graph object
 		this.isPreStarted= true;
 		this.raCorpusGraph= relANNISFactory.eINSTANCE.createRACorpusGraph();
 		Salt2RelANNISMapper mapper= new Salt2RelANNISMapper();
-		mapper.setLogService(this.getLogService());
 		mapper.mapSCorpusGraph2RACorpusGraph(sCorpGraph, this.raCorpusGraph);
 		//sets table for relation between SElementId and raId
 		this.sElementId2RaId= mapper.getsElementId2RaId();
 		
 	}
-	
-	/**
-	 * Special params as properties.
-	 */
-	private Properties options= null;
 	
 	/**
 	 * Stores relation between SElementId and raId. 
@@ -124,23 +120,11 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 		try
 		{
 		if (sElementId== null)
-			throw new RelANNISModuleException("Cannot export an element with empty element id.");
+			throw new PepperModuleException(this, "Cannot export an element with empty element id.");
 		if (sElementId.getSIdentifiableElement()== null)
-			throw new RelANNISModuleException("Cannot export an element with element id, which does not have an sIdentifiableElement settet.");
-		if (this.getCorpusDefinition().getCorpusPath()== null)
-			throw new RelANNISModuleException("Cannot export an the element '"+sElementId.getId()+"', because of no corpus path is set.");
-		
-		if (this.getSpecialParams()!= null)
-		{//init options
-			File optionsFile= new File(this.getSpecialParams().toFileString());
-			if (!optionsFile.exists())
-				this.getLogService().log(LogService.LOG_WARNING, "Cannot load special param file at location '"+optionsFile.getAbsolutePath()+"', because it does not exist.");
-			else
-			{
-				this.options= new Properties();
-				this.options.load(new FileInputStream(optionsFile));
-			}
-		}//init options
+			throw new PepperModuleException(this, "Cannot export an element with element id, which does not have an sIdentifiableElement settet.");
+		if (this.getCorpusDesc().getCorpusPath()== null)
+			throw new PepperModuleException(this, "Cannot export an the element '"+sElementId.getId()+"', because of no corpus path is set.");
 		
 		//start: pre start corpus structure, if it wasn't
 			if (!isPreStarted)
@@ -149,8 +133,7 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 		if (sElementId.getSIdentifiableElement() instanceof SDocument)
 		{//export documentStructure
 			Long timeToExportDocument= System.nanoTime();
-			if (this.getLogService()!= null)
-				this.getLogService().log(LogService.LOG_DEBUG,this.getName()+" exporting document "+ sElementId.getSId());
+			logger.debug(this.getName()+" exporting document "+ sElementId.getSId());
 			if (((SDocument)sElementId.getSIdentifiableElement()).getSDocumentGraph()!= null)
 			{//only export if document graph isn't null	
 				if (this.sElementId2RaId!= null)
@@ -169,9 +152,8 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 							Long timeToMapSDocument= System.nanoTime();
 							Salt2RelANNISMapper mapper= new Salt2RelANNISMapper();
 							if (sDocument2Mapper== null)
-								sDocument2Mapper= Collections.synchronizedMap(new HashMap<SElementId, Salt2RelANNISMapper>());
-							sDocument2Mapper.put(sElementId, mapper);
-							mapper.setLogService(this.getLogService());
+								sDocument2Mapper= Collections.synchronizedMap(new HashMap<String, Salt2RelANNISMapper>());
+							sDocument2Mapper.put(SaltFactory.eINSTANCE.getGlobalId(sElementId), mapper);
 							mapper.mapSDocumentGraph2RADocumentGraph(sDocGraph, raDocGraph);
 							//start: adding documentgraph to document
 								RACorpus raDocument= null;
@@ -183,7 +165,7 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 								raDocument.setRaDocumentGraph(raDocGraph);
 							//end: adding document graph to docuement
 							//start: cleaning up
-								this.sDocument2Mapper.remove(sElementId);
+								this.sDocument2Mapper.remove(SaltFactory.eINSTANCE.getGlobalId(sElementId));
 								mapper= null;
 							//end: cleaning up	
 							this.totalTimeToMapSDocument= this.totalTimeToMapSDocument + (System.nanoTime() - timeToMapSDocument);
@@ -195,26 +177,26 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 				
 							// Register XML resource factory
 							resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(null, new RelANNISResourceFactory());
-							Resource resource= resourceSet.createResource(this.getCorpusDefinition().getCorpusPath());
+							Resource resource= resourceSet.createResource(this.getCorpusDesc().getCorpusPath());
 							resource.getContents().add(raCorpusGraph);
 							Map<String, String> optionMap= new Hashtable<String, String>();
 							optionMap.put("SAVING_TYPE", "DOCUMENT");
 							optionMap.put("SAVING_DOCUMENT_NO", docRaId.toString());
-							if (options!= null)
+							if (getProperties()!= null)
 							{//copy special params to optionMap
-								for (Object key: options.keySet())
+								for (Object key: getProperties().getProperties().keySet())
 								{
-									optionMap.put(key.toString(), options.getProperty(key.toString()));
+									optionMap.put(key.toString(), getProperties().getProperties().getProperty(key.toString()));
 								}
 							}//copy special params to optionMap
 							
 							String relannisVersion= "3.1";
-							if (	(this.getCorpusDefinition()!= null)&&
-									(this.getCorpusDefinition().getFormatDefinition()!= null)&&
-									(this.getCorpusDefinition().getFormatDefinition().getFormatVersion()!= null)&&
-									(!this.getCorpusDefinition().getFormatDefinition().getFormatVersion().isEmpty()))
+							if (	(this.getCorpusDesc()!= null)&&
+									(this.getCorpusDesc().getFormatDesc()!= null)&&
+									(this.getCorpusDesc().getFormatDesc().getFormatVersion()!= null)&&
+									(!this.getCorpusDesc().getFormatDesc().getFormatVersion().isEmpty()))
 							{
-								relannisVersion= this.getCorpusDefinition().getFormatDefinition().getFormatVersion();
+								relannisVersion= this.getCorpusDesc().getFormatDesc().getFormatVersion();
 							}
 							optionMap.put(RelANNISResourceFactory.RELANNIS_VERSION, relannisVersion);
 							
@@ -222,7 +204,7 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 								resource.save(optionMap);
 							} catch (IOException e) 
 							{
-								throw new RelANNISModuleException("Cannot save document structure of element '"+sElementId.getSId()+"' to resource.", e);
+								throw new PepperModuleException(this, "Cannot save document structure of element '"+sElementId.getSId()+"' to resource.", e);
 							}
 							finally
 							{
@@ -237,14 +219,10 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 			}//only export if document graph isn't null
 			this.totalTimeToExportSDocumentStructure= this.totalTimeToExportSDocumentStructure + (System.nanoTime() - timeToExportDocument);
 		}//export documentStructure
-//		else 
-//		{
-//			throw new RelANNISModuleException("Cannot export the following elment with id '"+sElementId.getSId()+"', because it isn't of Type SCorpus or SDocument: "+ sElementId.getSIdentifiableElement());
-//		}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			throw new RelANNISModuleException("",e);
+			throw new PepperModuleException(this, "",e);
 		}
 	}
 	
@@ -252,18 +230,12 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 	 * A Hashmap representing the correspondence between a {@link SDocument} object given by its {@link SElementId} object and 
 	 * the {@link Salt2RelANNISMapper} object processing the {@link SDocument} object.
 	 */
-	private Map<SElementId, Salt2RelANNISMapper> sDocument2Mapper= null;
+	private Map<String, Salt2RelANNISMapper> sDocument2Mapper= null;
 	
-	/**
-	 * Returns the progress of the {@link Salt2RelANNISMapper} processing the {@link SDocument} represented by the given 
-	 * {@link SElementId} object.
-	 * @param sDocumentId identifier for the {@link SDocument}. 
-	 */
 	@Override
-	public Double getProgress(SElementId sDocumentId)
-	{
+	public Double getProgress(String globalId) {
 		Double retVal= null;
-		Salt2RelANNISMapper mapper= this.sDocument2Mapper.get(sDocumentId);
+		Salt2RelANNISMapper mapper= this.sDocument2Mapper.get(globalId);
 		if (mapper!= null)
 			retVal= mapper.getProgress();
 		return(retVal);
@@ -280,50 +252,51 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 			SCorpusGraph sCorpGraph= null;
 			{//emit correct sCorpus graph object
 				if (this.getSaltProject().getSCorpusGraphs().size() > 1)
-					throw new RelANNISModuleException("Cannot work with more than one corpus structure graphs.");
+					throw new PepperModuleException(this, "Cannot work with more than one corpus structure graphs.");
 				sCorpGraph= (SCorpusGraph) this.getSaltProject().getSCorpusGraphs().get(0);
 			}//emit correct sCorpus graph object
-			Salt2RelANNISMapper mapper= new Salt2RelANNISMapper();
-			mapper.setpModuleController(this.getPepperModuleController());
-			mapper.setLogService(this.getLogService());
-			mapper.mapFinalSCorpusGraph2RACorpusGraph(sCorpGraph, this.raCorpusGraph, this.sElementId2RaId);
-		//end: map the graphs
-		
-		//start: save raCorpusGraph to resource
-			// create resource set and resource
-			ResourceSet resourceSet = new ResourceSetImpl();
-
-			// Register XML resource factory
-			resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(null, new RelANNISResourceFactory());
-			Resource resource= resourceSet.createResource(this.getCorpusDefinition().getCorpusPath());
-			resource.getContents().add(raCorpusGraph);
-			Map<String, String> optionMap= new Hashtable<String, String>();
-			optionMap.put("SAVING_TYPE", "CORPUS_STRUCTURE");
-			if (options!= null)
-			{//copy special params to optionMap
-				for (Object key: options.keySet())
+			
+			if (	(sCorpGraph!= null)&&
+					(sCorpGraph.getSCorpora().size()>0))
+			{//only, if corpus graph is not empty
+				Salt2RelANNISMapper mapper= new Salt2RelANNISMapper();
+				mapper.setpModuleController(this.getModuleController());
+				mapper.mapFinalSCorpusGraph2RACorpusGraph(sCorpGraph, this.raCorpusGraph, this.sElementId2RaId);
+			
+			//start: save raCorpusGraph to resource
+				// create resource set and resource
+				ResourceSet resourceSet = new ResourceSetImpl();
+	
+				// Register XML resource factory
+				resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(null, new RelANNISResourceFactory());
+				Resource resource= resourceSet.createResource(this.getCorpusDesc().getCorpusPath());
+				resource.getContents().add(raCorpusGraph);
+				Map<String, String> optionMap= new Hashtable<String, String>();
+				optionMap.put("SAVING_TYPE", "CORPUS_STRUCTURE");
+				if (	(getProperties()!= null)&&
+						(getProperties().getProperties()!= null))
+				{//copy special params to optionMap
+					for (Object key: getProperties().getProperties().keySet())
+					{
+						optionMap.put(key.toString(), getProperties().getProperties().getProperty(key.toString()));
+					}
+				}//copy special params to optionMap
+				try {
+					resource.save(optionMap);
+				} catch (IOException e) 
 				{
-					optionMap.put(key.toString(), options.getProperty(key.toString()));
+					throw new PepperModuleException(this, "Cannot save corpus structure to resource.", e);
 				}
-			}//copy special params to optionMap
-			try {
-				resource.save(optionMap);
-			} catch (IOException e) 
-			{
-				throw new RelANNISModuleException("Cannot save corpus structure to resource.", e);
-			}
-		//end: save raCorpusGraph to resource
-		this.totalTimeToExportSCorpusStructure= this.totalTimeToExportSCorpusStructure +(System.nanoTime() - timeToExportSCorpusStructure);
-		
-		if (this.getLogService()!= null)
-		{	
+			//end: save raCorpusGraph to resource
+			this.totalTimeToExportSCorpusStructure= this.totalTimeToExportSCorpusStructure +(System.nanoTime() - timeToExportSCorpusStructure);
+			
 			StringBuffer msg= new StringBuffer();
 			msg.append("needed time of "+this.getName()+":\n");
 			msg.append("\t time to export whole corpus-structure:\t\t\t\t"+ this.totalTimeToExportSCorpusStructure / 1000000+"\n");
 			msg.append("\t total time to export whole document structure:\t\t"+ totalTimeToExportSDocumentStructure / 1000000+"\n");
 			msg.append("\t total time to save all document-structures:\t\t"+ totalTimeToSaveSDocument / 1000000+"\n");
 			msg.append("\t total time to map all document-structure from salt:\t"+ totalTimeToMapSDocument / 1000000+"\n");
-			this.getLogService().log(LogService.LOG_DEBUG, msg.toString());
+			logger.debug(msg.toString());
 		}
 	}
 }

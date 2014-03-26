@@ -25,7 +25,8 @@ import java.util.Stack;
 
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
-import org.osgi.service.log.LogService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RAComponent;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RACorpus;
@@ -42,10 +43,9 @@ import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RA_COMPONENT_TYPE;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RA_CORPUS_TYPE;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.relANNISFactory;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.resources.RelANNISResource;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperModule;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperModuleController;
-import de.hu_berlin.german.korpling.saltnpepper.pepperModules.relannis.exceptions.RelANNISModuleException;
-import de.hu_berlin.german.korpling.saltnpepper.salt.SaltFactory;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.ModuleController;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.PepperModule;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.exceptions.PepperModuleException;
 import de.hu_berlin.german.korpling.saltnpepper.salt.graph.Edge;
 import de.hu_berlin.german.korpling.saltnpepper.salt.graph.GRAPH_TRAVERSE_TYPE;
 import de.hu_berlin.german.korpling.saltnpepper.salt.graph.exceptions.GraphInsertException;
@@ -79,6 +79,8 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SaltCoreFactory;
 
 public class Salt2RelANNISMapper implements SGraphTraverseHandler
 {
+	private static final Logger logger= LoggerFactory.getLogger(Salt2RelANNISMapper.class);
+	
 	public Salt2RelANNISMapper()
 	{
 		this.init();
@@ -94,13 +96,13 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 	/**
 	 * The controller handling the {@link PepperModule} object.
 	 */
-	private PepperModuleController pModuleController= null;
+	private ModuleController pModuleController= null;
 	
-	public void setpModuleController(PepperModuleController pModuleController) {
+	public void setpModuleController(ModuleController pModuleController) {
 		this.pModuleController = pModuleController;
 	}
 
-	public PepperModuleController getpModuleController() {
+	public ModuleController getpModuleController() {
 		return pModuleController;
 	}
 // -------------------------end: PepperModuleController
@@ -170,23 +172,6 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 		return sElementId2RaId;
 	}	
 
-// ================================================ start: LogService	
-	private LogService logService;
-
-	public void setLogService(LogService logService) 
-	{
-		this.logService = logService;
-	}
-	
-	public LogService getLogService() 
-	{
-		return(this.logService);
-	}
-	
-	public void unsetLogService(LogService logService) {
-		this.logService= null;
-	}
-// ================================================ end: LogService
 	
 // ================================================ start: mapping corpus structure	
 	/**
@@ -199,9 +184,9 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 		this.setRaCorpusGraph(raCorpusGraph);
 		this.setSCorpusGraph(sCorpusGraph);
 		if (this.getRaCorpusGraph()== null)
-			throw new RelANNISModuleException("Cannot map sCorpusGraph to raCorpusGraph, because raCorpusGraph is null.");
+			throw new PepperModuleException("Cannot map sCorpusGraph to raCorpusGraph, because raCorpusGraph is null.");
 		if (this.getSCorpusGraph()== null)
-			throw new RelANNISModuleException("Cannot map sCorpusGraph to raCorpusGraph, because sCorpusGraph is null.");
+			throw new PepperModuleException("Cannot map sCorpusGraph to raCorpusGraph, because sCorpusGraph is null.");
 		
 		if (this.getsElementId2RaId()== null)
 			this.sElementId2RaId= new Hashtable<SElementId, Long>();
@@ -213,14 +198,14 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 				if (	(roots== null) ||
 						(roots.size()== 0))
 				{
-					throw new RelANNISModuleException("Cannot traverse through corpus structure, because there is no raCOrpus-object as root.");
+					throw new PepperModuleException("Cannot traverse through corpus structure, because there is no raCOrpus-object as root.");
 				}
 				//set traversion type to corpus structure
 				this.currTraversionType= TRAVERSION_TYPE.CORPUS_STRUCTURE;
 				this.lastRACorpus= new Stack<RACorpus>();
 				this.getSCorpusGraph().traverse(roots, GRAPH_TRAVERSE_TYPE.TOP_DOWN_DEPTH_FIRST, "compute_corpus_structure", this, true);
 			}catch (Exception e) {
-				throw new RelANNISModuleException("Some error occurs while traversing corpus structure graph.", e);
+				throw new PepperModuleException("Some error occurs while traversing corpus structure graph.", e);
 			}
 		}//start traversion of corpus structure
 	}
@@ -238,18 +223,18 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 		this.setRaCorpusGraph(raCorpusGraph);
 		this.setSCorpusGraph(sCorpusGraph);
 		if (this.getRaCorpusGraph()== null)
-			throw new RelANNISModuleException("Cannot final map sCorpusGraph to raCorpusGraph, because raCorpusGraph is null.");
+			throw new PepperModuleException("Cannot final map sCorpusGraph to raCorpusGraph, because raCorpusGraph is null.");
 		if (this.getSCorpusGraph()== null)
-			throw new RelANNISModuleException("Cannot final map sCorpusGraph to raCorpusGraph, because sCorpusGraph is null.");
+			throw new PepperModuleException("Cannot final map sCorpusGraph to raCorpusGraph, because sCorpusGraph is null.");
 		
 		if (this.getsElementId2RaId()== null)
-			throw new RelANNISModuleException("Cannot map final sCorpusGraph to raCorpusGraph, because sElementId2RaId is null.");
+			throw new PepperModuleException("Cannot map final sCorpusGraph to raCorpusGraph, because sElementId2RaId is null.");
 		
 		for (SCorpus sCorp: this.getSCorpusGraph().getSCorpora())
 		{//map annotations of all corpora
 			Long raId= this.sElementId2RaId.get(sCorp.getSElementId());
 			if (raId== null)
-				throw new RelANNISModuleException("Cannot map final sCorpusGraph to raCorpusGraph, because there is no raId registered to sElementId '"+sCorp.getSElementId().getSId()+"'.");
+				throw new PepperModuleException("Cannot map final sCorpusGraph to raCorpusGraph, because there is no raId registered to sElementId '"+sCorp.getSElementId().getSId()+"'.");
 			RACorpus raCorpus= null;
 			for (RACorpus raCorpus2: this.getRaCorpusGraph().getRaCorpora())
 			{
@@ -263,7 +248,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 		{//map annotations of all documents
 			Long raId= this.sElementId2RaId.get(sCorp.getSElementId());
 			if (raId== null)
-				throw new RelANNISModuleException("Cannot map final sdocumentGraph to radocumentGraph, because there is no raId registered to sElementId '"+sCorp.getSElementId().getSId()+"'.");
+				throw new PepperModuleException("Cannot map final sdocumentGraph to radocumentGraph, because there is no raId registered to sElementId '"+sCorp.getSElementId().getSId()+"'.");
 			RACorpus raDocument= null;
 			for (RACorpus raCorpus: this.getRaCorpusGraph().getRaCorpora())
 			{
@@ -388,9 +373,9 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 		this.setsDocGraph(sDocGraph);
 		this.setRaDocGraph(raDocGraph);
 		if (this.getsDocGraph()== null)
-			throw new RelANNISModuleException("Cannot map sDocumentGraph to raDocumentGraph, because sDocumentGraph is null.");
+			throw new PepperModuleException("Cannot map sDocumentGraph to raDocumentGraph, because sDocumentGraph is null.");
 		if (this.getRaDocGraph()== null)
-			throw new RelANNISModuleException("Cannot map sDocumentGraph to raDocumentGraph, because raDocumentGraph is null.");
+			throw new PepperModuleException("Cannot map sDocumentGraph to raDocumentGraph, because raDocumentGraph is null.");
 			
 		this.getRaDocGraph().setSId(this.getsDocGraph().getSId());
 		
@@ -412,18 +397,14 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 		Long timeToMapPRComponents= 0l;
 		Long timeToMapLonlyComponents= 0l;
 		//start: exporting all SStructure, SSpan and SToken elements connected with SSpanningRelation
-			if (this.getLogService()!= null)
-			{
-				this.getLogService().log(LogService.LOG_DEBUG, getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SSPanningRelation...");
-			}
+			logger.debug(getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SSPanningRelation...");
 			timeToMapSRComponents= System.nanoTime();
 			this.traverseBySRelation(SSpanningRelation.class);
 			timeToMapSRComponents= System.nanoTime() - timeToMapSRComponents;
 		//end: exporting all SStructure, SSpan and SToken elements connected with SSpanningRelation
 		
 		//start: exporting all SStructure, SSpan and SToken elements connected with SDominanceRelation
-			if (this.getLogService()!= null)
-				this.getLogService().log(LogService.LOG_DEBUG, getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SDominanceRelation...");
+			logger.debug(getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SDominanceRelation...");
 			timeToMapDRComponents= System.nanoTime();
 			this.traverseBySRelation(SDominanceRelation.class);
 			timeToMapDRComponents= System.nanoTime() - timeToMapDRComponents;
@@ -431,8 +412,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 		
 		//start: Export all tokens who aren't connected by (SSPANNING_RELATION, SPOINTING_RELATION or SDOMINANCE_RELATION)
 			timeToMapLonlyComponents= System.nanoTime();
-			if (this.getLogService()!= null)
-				this.getLogService().log(LogService.LOG_DEBUG, getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SToken without relation.");
+			logger.debug(getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SToken without relation.");
 			EList<SToken> sTokens= this.getsDocGraph().getSTokens();
 			if (sTokens!= null)
 			{
@@ -446,8 +426,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 						percentage= alreadyProcessedTokens *100/ sTokens.size();
 						currentProgress= currentProgress+ percentage* 0.20;
 						
-						if (this.getLogService()!= null)
-							this.getLogService().log(LogService.LOG_DEBUG, getsDocGraph().getSElementId()+ ": already processed tokens:  "+ percentage +"%...("+alreadyProcessedTokens+"/"+sTokens.size()+")");
+						logger.debug(getsDocGraph().getSElementId()+ ": already processed tokens:  "+ percentage +"%...("+alreadyProcessedTokens+"/"+sTokens.size()+")");
 					}
 
 					//if element does not already have been stored
@@ -464,7 +443,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 						try{
 							this.getsDocGraph().traverse(startNodes, GRAPH_TRAVERSE_TYPE.TOP_DOWN_DEPTH_FIRST, "export_tokens", this, false);
 						}catch (Exception e) {
-							throw new RelANNISModuleException("Some error occurs while traversing corpus structure graph.", e);
+							throw new PepperModuleException("Some error occurs while traversing corpus structure graph.", e);
 						}
 					}//token found, which has not already been visited
 				}
@@ -502,36 +481,27 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 				}
 			}//end: map SAudioDataSource
 			
-			if (this.getLogService()!= null)
-			{
-				StringBuilder logStr= new StringBuilder();
-				logStr.append("time to map document: "+this.getsDocGraph().getSDocument().getSName()+"\n");
-				logStr.append("\ttime to map spanning-relation-components:\t"+(timeToMapSRComponents/ 1000000)+"\n");
-				logStr.append("\ttime to map dominance-relation-components:\t"+(timeToMapDRComponents/ 1000000)+"\n");
-				logStr.append("\ttime to map pointing-relation-components:\t"+(timeToMapPRComponents/ 1000000)+"\n");
-				logStr.append("\ttime to map lonely-components:\t\t"+(timeToMapLonlyComponents/ 1000000)+"\n");
-				this.getLogService().log(LogService.LOG_DEBUG, logStr.toString());
-			}
+			StringBuilder logStr= new StringBuilder();
+			logStr.append("time to map document: "+this.getsDocGraph().getSDocument().getSName()+"\n");
+			logStr.append("\ttime to map spanning-relation-components:\t"+(timeToMapSRComponents/ 1000000)+"\n");
+			logStr.append("\ttime to map dominance-relation-components:\t"+(timeToMapDRComponents/ 1000000)+"\n");
+			logStr.append("\ttime to map pointing-relation-components:\t"+(timeToMapPRComponents/ 1000000)+"\n");
+			logStr.append("\ttime to map lonely-components:\t\t"+(timeToMapLonlyComponents/ 1000000)+"\n");
+			logger.debug(logStr.toString());
 		//end: Export all tokens who aren't connected by (SSPANNING_RELATION, SPOINTING_RELATION or SDOMINANCE_RELATION)
 			
 			//start: exporting all SStructuredNodes connected with SPointingRelation
-			if (this.getLogService()!= null)
-				this.getLogService().log(LogService.LOG_DEBUG, getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SPointingRelation...");
+			logger.debug(getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SPointingRelation...");
 			timeToMapPRComponents= System.nanoTime();
 			this.traverseBySRelation(SPointingRelation.class);
 			timeToMapPRComponents= System.nanoTime() - timeToMapPRComponents;
 		//end: exporting all SStructuredNodes connected with SPointingRelation
 			
 		//start: exporting all SNodes connected with SOrderRelation
-			if (this.getLogService()!= null)
-				this.getLogService().log(LogService.LOG_DEBUG, getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SOrderRelation...");
-//			timeToMapPRComponents= System.nanoTime();
-//			timeToMapPRComponents= System.nanoTime() - timeToMapPRComponents;
+			logger.debug(getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SOrderRelation...");
 			if (sDocGraph.getSOrderRelations().size()> 0)
 			{
-				
-				STYPE_NAME sType= SaltFactory.eINSTANCE.convertClazzToSTypeName(SOrderRelation.class);
-				Map<String, EList<SNode>> roots= this.getsDocGraph().getRootsBySRelationSType(sType);
+				Map<String, EList<SNode>> roots= this.getsDocGraph().getRootsBySRelationSType(STYPE_NAME.SORDER_RELATION);
 				if (roots!= null)
 				{
 					Set<String> segmentNames= roots.keySet();
@@ -548,7 +518,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 							percentage= alreadyProcessedRoots/ roots.size();
 							currentProgress= currentProgress+ percentage* 0.20;
 						}catch (Exception e) {
-							throw new RelANNISModuleException("Some error occurs while traversing corpus structure graph.", e);
+							throw new PepperModuleException("Some error occurs while traversing corpus structure graph.", e);
 						}
 					}
 				}			
@@ -578,14 +548,13 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 					percentage= alreadyProcessedRoots * 100/ roots.size();
 					currentProgress= currentProgress+ percentage* factor;
 					
-					if (this.getLogService()!= null)
-						this.getLogService().log(LogService.LOG_DEBUG, getsDocGraph().getSElementId().getSId()+"already processed subtrees:  "+ percentage +"%...("+alreadyProcessedRoots+"/"+roots.size()+")");
+					logger.debug(getsDocGraph().getSElementId().getSId()+"already processed subtrees:  "+ percentage +"%...("+alreadyProcessedRoots+"/"+roots.size()+")");
 				}//notify the pepper-framework about progress
 				
 				this.currRaComponent= relANNISFactory.eINSTANCE.createRAComponent();
 				if (	(roots== null) ||
 						(roots.size()== 0))
-					throw new RelANNISModuleException("Cannot traverse through document structure, because there is no SNode -object as root.");
+					throw new PepperModuleException("Cannot traverse through document structure, because there is no SNode -object as root.");
 				this.currNodeIsRoot= true;
 				EList<SNode> startNodes= new BasicEList<SNode>();
 				startNodes.add(subRoot);
@@ -593,7 +562,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 				try{
 					this.getsDocGraph().traverse(startNodes, GRAPH_TRAVERSE_TYPE.TOP_DOWN_DEPTH_FIRST, "export_tokens", this, false);
 				}catch (Exception e) {
-					throw new RelANNISModuleException("Some error occurs while traversing document structure.", e);
+					throw new PepperModuleException("Some error occurs while traversing document structure.", e);
 				}
 			}
 		}
@@ -607,10 +576,19 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 	private void traverseBySRelation(Class<? extends SRelation> clazz)
 	{
 		if (clazz== null)
-			throw new RelANNISModuleException("Cannot compute roots for given SRelation subtype, becuase it is null.");
+			throw new PepperModuleException("Cannot compute roots for given SRelation subtype, becuase it is null.");
 		
 		//maps the given class name to a Salt sType name.
-		STYPE_NAME sType= SaltFactory.eINSTANCE.convertClazzToSTypeName(clazz);
+//		STYPE_NAME sType= SaltFactory.eINSTANCE.convertClazzToSTypeName(clazz);
+		STYPE_NAME sType= null;
+		
+		if (SPointingRelation.class.isAssignableFrom(clazz)){
+			sType= STYPE_NAME.SPOINTING_RELATION;
+		}else if (SSpanningRelation.class.isAssignableFrom(clazz)){
+			sType= STYPE_NAME.SSPANNING_RELATION;
+		}else if (SDominanceRelation.class.isAssignableFrom(clazz)){
+			sType= STYPE_NAME.SDOMINANCE_RELATION;
+		}
 		
 		if (clazz.equals(SSpanningRelation.class))
 		{//exporting all SStructure, SSpan and SToken elements connected with SSpanningRelation
@@ -689,9 +667,9 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 	protected void mapSTextualDS2RAText(STextualDS sText, RAText raText)
 	{
 		if (sText== null)
-			throw new RelANNISModuleException("Cannot map the STextualDS-object to the given RAText-object, because sText is empty.");
+			throw new PepperModuleException("Cannot map the STextualDS-object to the given RAText-object, because sText is empty.");
 		if (raText== null)
-			throw new RelANNISModuleException("Cannot map the STextualDS-object to the given RAText-object, because raText is empty.");
+			throw new PepperModuleException("Cannot map the STextualDS-object to the given RAText-object, because raText is empty.");
 		raText.setRaText(sText.getSText());
 		raText.setRaName(sText.getSName());
 		if (sElementId2RAText== null)
@@ -732,11 +710,11 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 										RANode raToken)
 	{
 		if (sToken== null)
-			throw new RelANNISModuleException("Cannot map the SToken-object to the given RANode-object, because sToken is empty.");
+			throw new PepperModuleException("Cannot map the SToken-object to the given RANode-object, because sToken is empty.");
 		if (raToken== null)
-			throw new RelANNISModuleException("Cannot map the SToken-object to the given RANode-object, because raToken is empty.");
+			throw new PepperModuleException("Cannot map the SToken-object to the given RANode-object, because raToken is empty.");
 		if (raText== null)
-			throw new RelANNISModuleException("Cannot map the SToken-object to the given RANode-object, because the given raText is null. ");
+			throw new PepperModuleException("Cannot map the SToken-object to the given RANode-object, because the given raText is null. ");
 			
 		if (this.sTokenSortByLeft== null)
 		{
@@ -766,12 +744,12 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 		Long right= new Long(sequence.getSEnd());
 		
 		if (left < 0)
-			throw new RelANNISModuleException("Cannot map the given SToken-object '"+sToken.getSId()+"' to RAToken, because its left-value '"+left+"' is smaller than 0.");
+			throw new PepperModuleException("Cannot map the given SToken-object '"+sToken.getSId()+"' to RAToken, because its left-value '"+left+"' is smaller than 0.");
 		if (right > raText.getRaText().length())
 		{
 			//create text for error message, out of SText, which is at maximum 50 characters long
 			String errorSText= (raText.getRaText()!= null)?((raText.getRaText().length()<50)?raText.getRaText().substring(0, raText.getRaText().length()):raText.getRaText().substring(0, 50)):"";
-			throw new RelANNISModuleException("Cannot map the given SToken-object '"+sToken.getSId()+"' to RAToken, because its right-value '"+right+"' is bigger than the size of the text ("+((raText.getRaText()!=null)?raText.getRaText().length():0)+"): "+errorSText+"... .");
+			throw new PepperModuleException("Cannot map the given SToken-object '"+sToken.getSId()+"' to RAToken, because its right-value '"+right+"' is bigger than the size of the text ("+((raText.getRaText()!=null)?raText.getRaText().length():0)+"): "+errorSText+"... .");
 		}
 			
 		{//map name, name must be unique
@@ -820,9 +798,9 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 												RANode raStructuredNode)
 	{
 		if (sStructuredNode== null)
-			throw new RelANNISModuleException("Cannot map the SStructuredNode-object to the given RANode-object, because sStructuredNode is empty.");
+			throw new PepperModuleException("Cannot map the SStructuredNode-object to the given RANode-object, because sStructuredNode is empty.");
 		if (raStructuredNode== null)
-			throw new RelANNISModuleException("Cannot map the SStructuredNode-object to the given RANode-object, because raStructuredNode is empty.");
+			throw new PepperModuleException("Cannot map the SStructuredNode-object to the given RANode-object, because raStructuredNode is empty.");
 		
 		EList<STYPE_NAME> sTypes= new BasicEList<STYPE_NAME>();
 		sTypes.add(STYPE_NAME.STEXT_OVERLAPPING_RELATION);
@@ -830,17 +808,16 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 		if (	(overlappedDSSequences== null)||
 				(overlappedDSSequences.size()==0))
 		{
-			if (this.getLogService()!= null)
-				this.getLogService().log(LogService.LOG_WARNING, "Cannot map SStructuredNode object '"+sStructuredNode.getSId()+"' to ra-node, because it does not overlap a text.");
+			logger.debug("Cannot map SStructuredNode object '"+sStructuredNode.getSId()+"' to ra-node, because it does not overlap a text.");
 		}
 		else
 		{
 			SDataSourceSequence overlapedSequence= overlappedDSSequences.get(0);
 			
 			if (overlapedSequence.getSStart()== null)
-				throw new RelANNISModuleException("Cannot map the given SStructuredNode-object '"+sStructuredNode.getSId()+"', because it doesn't have a left (start-value) border, pointing to the primary data.");
+				throw new PepperModuleException("Cannot map the given SStructuredNode-object '"+sStructuredNode.getSId()+"', because it doesn't have a left (start-value) border, pointing to the primary data.");
 			if (overlapedSequence.getSEnd()== null)
-				throw new RelANNISModuleException("Cannot map the given SStructuredNode-object '"+sStructuredNode.getSId()+"', because it doesn't have a right (end-value) border, pointing to the primary data.");
+				throw new PepperModuleException("Cannot map the given SStructuredNode-object '"+sStructuredNode.getSId()+"', because it doesn't have a right (end-value) border, pointing to the primary data.");
 			Long left= new Long(overlapedSequence.getSStart());
 			Long right= new Long(overlapedSequence.getSEnd());
 			
@@ -859,9 +836,9 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 			}//namespace
 			
 			if (left < 0)
-				throw new RelANNISModuleException("Cannot map the given SStructuredNode-object '"+sStructuredNode.getSId()+"' to RAStructuredNode, because its left-value '"+left+"' is smaller than 0.");
+				throw new PepperModuleException("Cannot map the given SStructuredNode-object '"+sStructuredNode.getSId()+"' to RAStructuredNode, because its left-value '"+left+"' is smaller than 0.");
 			if (right > raText.getRaText().length())
-				throw new RelANNISModuleException("Cannot map the given SStructuredNode-object '"+sStructuredNode.getSId()+"' to RAStructuredNode, because its right-value '"+right+"' is bigger than the size of the text '"+raText.getRaText().length()+"'.");
+				throw new PepperModuleException("Cannot map the given SStructuredNode-object '"+sStructuredNode.getSId()+"' to RAStructuredNode, because its right-value '"+right+"' is bigger than the size of the text '"+raText.getRaText().length()+"'.");
 			
 			//start: map name, name must be unique
 				StringBuffer name= new StringBuffer();
@@ -901,7 +878,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 					raStructuredNode.addSAnnotation(raStructuredNodeAnno);
 				}
 				catch (GraphInsertException e) {
-					this.getLogService().log(LogService.LOG_WARNING, "An annotation of node '"+sStructuredNode.getSId()+"' could not be mapped to relANNIS. "+e);
+					logger.warn("An annotation of node '"+sStructuredNode.getSId()+"' could not be mapped to relANNIS. "+e);
 				}
 			}//map annotations
 		}
@@ -917,7 +894,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 													RANode raNode)
 	{
 		if (sAnno== null)
-			throw new RelANNISModuleException("Cannot map the SAnnotation-object to the given RANodeAnnotation-object, because sAnnotation is empty.");
+			throw new PepperModuleException("Cannot map the SAnnotation-object to the given RANodeAnnotation-object, because sAnnotation is empty.");
 		RANodeAnnotation raNodeAnno= relANNISFactory.eINSTANCE.createRANodeAnnotation(sAnno);
 		
 //		{//compute namespace from layer
@@ -948,7 +925,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 	protected RAEdgeAnnotation mapSAnnotation2RAEdgeAnnotation(	SAnnotation sAnno)
 	{
 		if (sAnno== null)
-			throw new RelANNISModuleException("Cannot map the SAnnotation-object to the given RANodeAnnotation-object, because sAnnotation is empty.");
+			throw new PepperModuleException("Cannot map the SAnnotation-object to the given RANodeAnnotation-object, because sAnnotation is empty.");
 		
 		RAEdgeAnnotation raEdgeAnno= relANNISFactory.eINSTANCE.createRAEdgeAnnotation(sAnno);
 		
@@ -1063,7 +1040,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 					vizType= VIZ_TYPE_PR;
 			}
 		}//owning element isn' t null
-		else throw new RelANNISModuleException("Cannot create a namespcae for an annotation, because it has no sAnnotatbaleElement.");
+		else throw new PepperModuleException("Cannot create a namespcae for an annotation, because it has no sAnnotatbaleElement.");
 		return(vizType);
 	}
 	
@@ -1101,15 +1078,15 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 										RARank raRank)
 	{
 		if (raRank== null)
-			throw new RelANNISModuleException("Cannot map the SRelation-object to the given RARank-object, because raRank is empty.");
+			throw new PepperModuleException("Cannot map the SRelation-object to the given RARank-object, because raRank is empty.");
 		if (raComponent== null)
-			throw new RelANNISModuleException("Cannot map the SRelation-object to the given RARank-object, because raComponent is empty.");
+			throw new PepperModuleException("Cannot map the SRelation-object to the given RARank-object, because raComponent is empty.");
 		if (raNode== null)
-			throw new RelANNISModuleException("Cannot map the SRelation-object to the given RARank-object, because raNode is empty.");
+			throw new PepperModuleException("Cannot map the SRelation-object to the given RARank-object, because raNode is empty.");
 	
 		SProcessingAnnotation sProcAnnotation= (SProcessingAnnotation) sNode.getLabel(KW_NS, KW_NAME_PRE);
 		if (sProcAnnotation== null)
-			throw new RelANNISModuleException("Cannot map the SRelation-object to the given RARank-object, because there is no pre value found for this relation '"+sRel.getSId()+"'.");
+			throw new PepperModuleException("Cannot map the SRelation-object to the given RARank-object, because there is no pre value found for this relation '"+sRel.getSId()+"'.");
 		else 
 		{
 			raRank.setRaPre((Long)sProcAnnotation.getSValue());
@@ -1139,7 +1116,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 									RAComponent raComponent)
 	{
 		if (raComponent== null)
-			throw new RelANNISModuleException("Cannot map the given RAComponent-object, because raComponent is empty.");
+			throw new PepperModuleException("Cannot map the given RAComponent-object, because raComponent is empty.");
 		if (sRel!= null)
 		{	
 			if (sRel instanceof SSpanningRelation)
@@ -1462,9 +1439,9 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 									}
 								}
 								if (this.sElementId2RAText== null)
-									throw new RelANNISModuleException("No RAText object is given to corresponding to the STExtualDS '"+currSTextDS.getSElementId()+"'.");
+									throw new PepperModuleException("No RAText object is given to corresponding to the STExtualDS '"+currSTextDS.getSElementId()+"'.");
 								if (currSTextDS== null)
-									throw new RelANNISModuleException("An exception occurs while traversing RAGraph, because the currSTextDS object is null for node '"+currSNode.getSElementId()+"'.");
+									throw new PepperModuleException("An exception occurs while traversing RAGraph, because the currSTextDS object is null for node '"+currSNode.getSElementId()+"'.");
 								this.mapSToken2RANode((SToken)currSNode, this.sElementId2RAText.get(currSTextDS.getSElementId()) , raNode);
 							}//if there are more than just one text sources in document-graph
 							
@@ -1501,12 +1478,12 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 							(currSNode instanceof SStructure))
 					{
 						if (this.sElementId2RANode== null)
-							throw new RelANNISModuleException("Might be a bug, no sElementId2RANode table exists.");
+							throw new PepperModuleException("Might be a bug, no sElementId2RANode table exists.");
 						if (currSNode.getSElementId()== null)
-							throw new RelANNISModuleException("Might be a bug, no SElementId exists for node: "+ currSNode);
+							throw new PepperModuleException("Might be a bug, no SElementId exists for node: "+ currSNode);
 						RANode raNode= this.sElementId2RANode.get(currSNode.getSElementId());
 						if (raNode.getRaLeft()== null)
-							throw new RelANNISModuleException("No raLeft value exists for node: "+ raNode+", corresponding sNode is: "+ currSNode);
+							throw new PepperModuleException("No raLeft value exists for node: "+ raNode+", corresponding sNode is: "+ currSNode);
 						this.currTravInfo.start= raNode.getRaLeft().intValue();
 						this.currTravInfo.end= raNode.getRaRight().intValue();
 					}
@@ -1553,7 +1530,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 					{//map SRelation to RARank
 						RANode raNode= this.sElementId2RANode.get(currSNode.getSElementId());
 						if (this.lastRARank== null)
-							throw new RelANNISModuleException("The stack lastRank is empty.");
+							throw new PepperModuleException("The stack lastRank is empty.");
 						RARank raRank= this.lastRARank.pop();
 						RARank currLastRARank= null;
 						if (	(this.lastRARank!= null) &&

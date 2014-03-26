@@ -29,10 +29,9 @@ import org.osgi.service.component.annotations.Component;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RACorpus;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RACorpusGraph;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.resources.RelANNISResourceFactory;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperExceptions.PepperModuleException;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.PepperImporter;
-import de.hu_berlin.german.korpling.saltnpepper.pepper.pepperModules.impl.PepperImporterImpl;
-import de.hu_berlin.german.korpling.saltnpepper.pepperModules.relannis.exceptions.RelANNISModuleException;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.PepperImporter;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.exceptions.PepperModuleException;
+import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.impl.PepperImporterImpl;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpus;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SCorpusGraph;
 import de.hu_berlin.german.korpling.saltnpepper.salt.saltCommon.sCorpusStructure.SDocument;
@@ -46,7 +45,7 @@ public class RelANNISImporter extends PepperImporterImpl implements PepperImport
 		super();
 
 		//setting name of module
-		this.name= "RelANNISImporter";
+		setName("RelANNISImporter");
 		//set list of formats supported by this module
 		this.addSupportedFormat("relANNIS", "3.1", null);
 	}
@@ -67,17 +66,17 @@ public class RelANNISImporter extends PepperImporterImpl implements PepperImport
 	{
 		this.setSCorpusGraph(corpusGraph);
 		if (this.getSCorpusGraph()== null)
-			throw new RelANNISModuleException(this.name+": Cannot start with importing corpus, because salt graph isn�t set.");
+			throw new PepperModuleException(this,": Cannot start with importing corpus, because salt graph isn�t set.");
 		
 		ResourceSet resourceSet = new ResourceSetImpl();
 		resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(null, new RelANNISResourceFactory());
 		
-		if (this.getCorpusDefinition().getCorpusPath()== null)
-			throw new RelANNISModuleException("Cannot load corpus structure, because no corpus path is given.");
+		if (this.getCorpusDesc().getCorpusPath()== null)
+			throw new PepperModuleException(this,"Cannot load corpus structure, because no corpus path is given.");
 		//load resource 
-		Resource resource = resourceSet.createResource(this.getCorpusDefinition().getCorpusPath());
+		Resource resource = resourceSet.createResource(this.getCorpusDesc().getCorpusPath());
 		if (resource== null)
-			throw new RelANNISModuleException("Cannot load corpus structure, because the given resource is null.");
+			throw new PepperModuleException(this,"Cannot load corpus structure, because the given resource is null.");
 		
 		Map<String, String> optionMap= new Hashtable<String, String>();
 		optionMap.put("LOADING_TYPE", "CORPUS_STRUCTURE");
@@ -85,7 +84,7 @@ public class RelANNISImporter extends PepperImporterImpl implements PepperImport
 			resource.load(optionMap);
 		} catch (IOException e) 
 		{
-			throw new RelANNISModuleException("Cannot load corpus structure.", e);
+			throw new PepperModuleException(this,"Cannot load corpus structure.", e);
 		}
 		RACorpusGraph raCorpusGraph= (RACorpusGraph) resource.getContents().get(0);
 		this.raCorpusGraph= raCorpusGraph;
@@ -111,9 +110,9 @@ public class RelANNISImporter extends PepperImporterImpl implements PepperImport
 		}
 		
 		if (sElementId== null)
-			throw new RelANNISModuleException("Cannot not import, because the given SElmentId-object is empty.");
+			throw new PepperModuleException(this,"Cannot not import, because the given SElmentId-object is empty.");
 		if (sElementId.getSIdentifiableElement()== null)
-			throw new RelANNISModuleException("Cannot not import, because the given SElmentId-object has no SIdentifiableElement-object like a SCorpus- or SDocument object. It is null.");
+			throw new PepperModuleException(this,"Cannot not import, because the given SElmentId-object has no SIdentifiableElement-object like a SCorpus- or SDocument object. It is null.");
 		//if elementId belongs to SDocument
 		if(!	(	(sElementId.getSIdentifiableElement() instanceof SDocument) ||
 					(sElementId.getSIdentifiableElement() instanceof SCorpus)))
@@ -129,12 +128,12 @@ public class RelANNISImporter extends PepperImporterImpl implements PepperImport
 					ResourceSet resourceSet = new ResourceSetImpl();
 					resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(null, new RelANNISResourceFactory());
 					
-					if (this.getCorpusDefinition().getCorpusPath()== null)
-						throw new RelANNISModuleException("Cannot load corpus structure, because no corpus path is given.");
+					if (this.getCorpusDesc().getCorpusPath()== null)
+						throw new PepperModuleException(this,"Cannot load corpus structure, because no corpus path is given.");
 					
-					Resource resource = resourceSet.createResource(this.getCorpusDefinition().getCorpusPath());
+					Resource resource = resourceSet.createResource(this.getCorpusDesc().getCorpusPath());
 					if (resource== null)
-						throw new RelANNISModuleException("Cannot load corpus structure, because the given resource is null.");
+						throw new PepperModuleException(this,"Cannot load corpus structure, because the given resource is null.");
 					
 					Map<String, String> optionMap= new Hashtable<String, String>();
 					
@@ -145,7 +144,7 @@ public class RelANNISImporter extends PepperImporterImpl implements PepperImport
 						resource.load(optionMap);
 					} catch (IOException e) 
 					{
-						throw new RelANNISModuleException("Cannot load corpus structure.", e);
+						throw new PepperModuleException(this,"Cannot load corpus structure.", e);
 					}
 					RACorpus raDocument= null;
 											
@@ -157,9 +156,9 @@ public class RelANNISImporter extends PepperImporterImpl implements PepperImport
 						}
 					}
 					if (raDocument== null)
-						throw new RelANNISModuleException("Cannot import the given document '"+docRaId+"', because it does not exist in relANNIS Model.");
+						throw new PepperModuleException(this,"Cannot import the given document '"+docRaId+"', because it does not exist in relANNIS Model.");
 					if (raDocument.getRaDocumentGraph()==null)
-						throw new RelANNISModuleException("Cannot import the given document '"+docRaId+"', because no content has been load.");
+						throw new PepperModuleException(this,"Cannot import the given document '"+docRaId+"', because no content has been load.");
 					RelANNIS2SaltMapper mapper= new RelANNIS2SaltMapper();
 					mapper.mapRACorpus2SDocument(raDocument, sDocument);
 				}//load resource
