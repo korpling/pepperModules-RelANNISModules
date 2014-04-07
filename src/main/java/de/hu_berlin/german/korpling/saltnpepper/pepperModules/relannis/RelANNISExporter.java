@@ -151,9 +151,7 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 						//start: map the graphs
 							Long timeToMapSDocument= System.nanoTime();
 							Salt2RelANNISMapper mapper= new Salt2RelANNISMapper();
-							if (sDocument2Mapper== null)
-								sDocument2Mapper= Collections.synchronizedMap(new HashMap<String, Salt2RelANNISMapper>());
-							sDocument2Mapper.put(SaltFactory.eINSTANCE.getGlobalId(sElementId), mapper);
+							getSDocument2MapperTable().put(SaltFactory.eINSTANCE.getGlobalId(sElementId), mapper);
 							mapper.mapSDocumentGraph2RADocumentGraph(sDocGraph, raDocGraph);
 							//start: adding documentgraph to document
 								RACorpus raDocument= null;
@@ -165,7 +163,7 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 								raDocument.setRaDocumentGraph(raDocGraph);
 							//end: adding document graph to docuement
 							//start: cleaning up
-								this.sDocument2Mapper.remove(SaltFactory.eINSTANCE.getGlobalId(sElementId));
+								getSDocument2MapperTable().remove(SaltFactory.eINSTANCE.getGlobalId(sElementId));
 								mapper= null;
 							//end: cleaning up	
 							this.totalTimeToMapSDocument= this.totalTimeToMapSDocument + (System.nanoTime() - timeToMapSDocument);
@@ -231,11 +229,17 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 	 * the {@link Salt2RelANNISMapper} object processing the {@link SDocument} object.
 	 */
 	private Map<String, Salt2RelANNISMapper> sDocument2Mapper= null;
+	private Map<String, Salt2RelANNISMapper> getSDocument2MapperTable(){
+		if (sDocument2Mapper== null){
+			sDocument2Mapper= Collections.synchronizedMap(new HashMap<String, Salt2RelANNISMapper>()); 
+		}
+		return(sDocument2Mapper);
+	}
 	
 	@Override
 	public Double getProgress(String globalId) {
 		Double retVal= null;
-		Salt2RelANNISMapper mapper= this.sDocument2Mapper.get(globalId);
+		Salt2RelANNISMapper mapper= getSDocument2MapperTable().get(globalId);
 		if (mapper!= null)
 			retVal= mapper.getProgress();
 		return(retVal);
