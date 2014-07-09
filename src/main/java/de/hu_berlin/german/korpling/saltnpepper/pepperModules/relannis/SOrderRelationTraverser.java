@@ -59,7 +59,11 @@ public class SOrderRelationTraverser implements SGraphTraverseHandler
 		if (sRelation!= null)
 		{
 			String types= null;
-			types= sRelation.getSTypes().get(0);
+			if (sRelation.getSTypes().size()== 0){
+				types="default";
+			}else{
+				types= sRelation.getSTypes().get(0);
+			}
 			if (sRelation.getSTypes().size()>1)
 			{
 				for (int i=1; i< sRelation.getSTypes().size(); i++)
