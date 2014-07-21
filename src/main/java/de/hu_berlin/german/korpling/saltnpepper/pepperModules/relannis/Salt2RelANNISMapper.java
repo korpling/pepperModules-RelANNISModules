@@ -397,14 +397,14 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 		Long timeToMapPRComponents= 0l;
 		Long timeToMapLonlyComponents= 0l;
 		//start: exporting all SStructure, SSpan and SToken elements connected with SSpanningRelation
-			logger.debug(getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SSPanningRelation...");
+			logger.debug("[RelANNISExporter] "+"[RelANNISExporter] "+getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SSpanningRelation...");
 			timeToMapSRComponents= System.nanoTime();
 			this.traverseBySRelation(SSpanningRelation.class);
 			timeToMapSRComponents= System.nanoTime() - timeToMapSRComponents;
 		//end: exporting all SStructure, SSpan and SToken elements connected with SSpanningRelation
 		
 		//start: exporting all SStructure, SSpan and SToken elements connected with SDominanceRelation
-			logger.debug(getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SDominanceRelation...");
+			logger.debug("[RelANNISExporter] "+getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SDominanceRelation...");
 			timeToMapDRComponents= System.nanoTime();
 			this.traverseBySRelation(SDominanceRelation.class);
 			timeToMapDRComponents= System.nanoTime() - timeToMapDRComponents;
@@ -412,7 +412,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 		
 		//start: Export all tokens who aren't connected by (SSPANNING_RELATION, SPOINTING_RELATION or SDOMINANCE_RELATION)
 			timeToMapLonlyComponents= System.nanoTime();
-			logger.debug(getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SToken without relation.");
+			logger.debug("[RelANNISExporter] "+getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SToken without relation.");
 			EList<SToken> sTokens= this.getsDocGraph().getSTokens();
 			if (sTokens!= null)
 			{
@@ -425,8 +425,6 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 					{
 						percentage= alreadyProcessedTokens *100/ sTokens.size();
 						currentProgress= currentProgress+ percentage* 0.20;
-						
-						logger.debug(getsDocGraph().getSElementId()+ ": already processed tokens:  "+ percentage +"%...("+alreadyProcessedTokens+"/"+sTokens.size()+")");
 					}
 
 					//if element does not already have been stored
@@ -487,18 +485,18 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 			logStr.append("\ttime to map dominance-relation-components:\t"+(timeToMapDRComponents/ 1000000)+"\n");
 			logStr.append("\ttime to map pointing-relation-components:\t"+(timeToMapPRComponents/ 1000000)+"\n");
 			logStr.append("\ttime to map lonely-components:\t\t"+(timeToMapLonlyComponents/ 1000000)+"\n");
-			logger.debug(logStr.toString());
+			logger.debug("[RelANNISExporter] "+logStr.toString());
 		//end: Export all tokens who aren't connected by (SSPANNING_RELATION, SPOINTING_RELATION or SDOMINANCE_RELATION)
 			
 			//start: exporting all SStructuredNodes connected with SPointingRelation
-			logger.debug(getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SPointingRelation...");
+			logger.debug("[RelANNISExporter] "+getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SPointingRelation...");
 			timeToMapPRComponents= System.nanoTime();
 			this.traverseBySRelation(SPointingRelation.class);
 			timeToMapPRComponents= System.nanoTime() - timeToMapPRComponents;
 		//end: exporting all SStructuredNodes connected with SPointingRelation
 			
 		//start: exporting all SNodes connected with SOrderRelation
-			logger.debug(getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SOrderRelation...");
+			logger.debug("[RelANNISExporter] "+getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SOrderRelation...");
 			if (sDocGraph.getSOrderRelations().size()> 0)
 			{
 				Map<String, EList<SNode>> roots= this.getsDocGraph().getRootsBySRelationSType(STYPE_NAME.SORDER_RELATION);
@@ -547,8 +545,6 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 				{//notify the pepper-framework about progress
 					percentage= alreadyProcessedRoots * 100/ roots.size();
 					currentProgress= currentProgress+ percentage* factor;
-					
-					logger.debug(getsDocGraph().getSElementId().getSId()+"already processed subtrees:  "+ percentage +"%...("+alreadyProcessedRoots+"/"+roots.size()+")");
 				}//notify the pepper-framework about progress
 				
 				this.currRaComponent= relANNISFactory.eINSTANCE.createRAComponent();
@@ -808,7 +804,7 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 		if (	(overlappedDSSequences== null)||
 				(overlappedDSSequences.size()==0))
 		{
-			logger.debug("Cannot map SStructuredNode object '"+sStructuredNode.getSId()+"' to ra-node, because it does not overlap a text.");
+			logger.debug("[RelANNISExporter] "+"Cannot map SStructuredNode object '"+sStructuredNode.getSId()+"' to ra-node, because it does not overlap a text.");
 		}
 		else
 		{

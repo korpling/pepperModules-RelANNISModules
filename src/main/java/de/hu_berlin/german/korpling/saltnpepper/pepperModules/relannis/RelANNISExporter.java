@@ -96,8 +96,9 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 				throw new PepperModuleException(this, "Cannot start exporting, because no salt project is given.");
 			if (this.getSaltProject().getSCorpusGraphs()== null)
 				throw new PepperModuleException(this, "Cannot start exporting, because there are no corpus graphs in salt project to export.");
-			if (this.getSaltProject().getSCorpusGraphs().size() > 1)
-				throw new PepperModuleException(this, "Cannot work with more than one corpus structure graphs.");
+			if (this.getSaltProject().getSCorpusGraphs().size() > 1){
+				logger.warn("Cannot work with more than one corpus structure graphs. Only the first will be processed, the rest will be ignored. ");
+			}
 			sCorpGraph= (SCorpusGraph) this.getSaltProject().getSCorpusGraphs().get(0);
 		}//emit correct sCorpus graph object
 		this.isPreStarted= true;
@@ -219,8 +220,11 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 		}//export documentStructure
 		}
 		catch (Exception e) {
-			e.printStackTrace();
-			throw new PepperModuleException(this, "",e);
+			if (e instanceof PepperModuleException){
+				throw (PepperModuleException) e;
+			}else{
+				throw new PepperModuleException(this, "",e);
+			}
 		}
 	}
 	
@@ -254,11 +258,10 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 		
 		//start: map the graphs
 			SCorpusGraph sCorpGraph= null;
-			{//emit correct sCorpus graph object
-				if (this.getSaltProject().getSCorpusGraphs().size() > 1)
-					throw new PepperModuleException(this, "Cannot work with more than one corpus structure graphs.");
+				if (this.getSaltProject().getSCorpusGraphs().size() > 1){
+					logger.warn("Cannot work with more than one corpus structure graphs. Only the first will be processed, the rest will be ignored. ");
+				}
 				sCorpGraph= (SCorpusGraph) this.getSaltProject().getSCorpusGraphs().get(0);
-			}//emit correct sCorpus graph object
 			
 			if (	(sCorpGraph!= null)&&
 					(sCorpGraph.getSCorpora().size()>0))
