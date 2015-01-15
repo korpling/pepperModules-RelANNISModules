@@ -110,20 +110,7 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 		this.sElementId2RaId= mapper.getsElementId2RaId();
 		
 	}
-	@Override
-	public void start() throws PepperModuleException {
-		if (getProperties().getProperty(RelANNISProperties.PROP_ESCAPE_TAB)!= null){
-			logger.info("[RelANNISExporter] replacing tabs with '"+getProperties().getProperty(RelANNISProperties.PROP_ESCAPE_TAB).getValue()+"'.");
-		}
-		if (getProperties().getProperty(RelANNISProperties.PROP_ESCAPE_LINEBREAK)!= null){
-			logger.info("[RelANNISExporter] replacing linebreaks with '"+getProperties().getProperty(RelANNISProperties.PROP_ESCAPE_LINEBREAK).getValue()+"'.");
-		}
-		if (getProperties().getProperty(RelANNISProperties.PROP_ESCAPE_BACKSLASH)!= null){
-			logger.info("[RelANNISExporter] replacing backslashes with '"+getProperties().getProperty(RelANNISProperties.PROP_ESCAPE_BACKSLASH).getValue()+"'.");
-		}
-		
-		super.start();
-	}
+	
 	/**
 	 * Stores relation between SElementId and raId. 
 	 */
