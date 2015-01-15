@@ -34,6 +34,7 @@ import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RACorpus;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RACorpusGraph;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.RADocumentGraph;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.relANNISFactory;
+import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.resources.RelANNISProperties;
 import de.hu_berlin.german.korpling.saltnpepper.misc.relANNIS.resources.RelANNISResourceFactory;
 import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.PepperExporter;
 import de.hu_berlin.german.korpling.saltnpepper.pepper.modules.PepperModuleProperties;
@@ -109,7 +110,20 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 		this.sElementId2RaId= mapper.getsElementId2RaId();
 		
 	}
-	
+	@Override
+	public void start() throws PepperModuleException {
+		if (getProperties().getProperty(RelANNISProperties.PROP_ESCAPE_TAB)!= null){
+			logger.info("[RelANNISExporter] replacing tabs with '"+getProperties().getProperty(RelANNISProperties.PROP_ESCAPE_TAB).getValue()+"'.");
+		}
+		if (getProperties().getProperty(RelANNISProperties.PROP_ESCAPE_LINEBREAK)!= null){
+			logger.info("[RelANNISExporter] replacing linebreaks with '"+getProperties().getProperty(RelANNISProperties.PROP_ESCAPE_LINEBREAK).getValue()+"'.");
+		}
+		if (getProperties().getProperty(RelANNISProperties.PROP_ESCAPE_BACKSLASH)!= null){
+			logger.info("[RelANNISExporter] replacing backslashes with '"+getProperties().getProperty(RelANNISProperties.PROP_ESCAPE_BACKSLASH).getValue()+"'.");
+		}
+		
+		super.start();
+	}
 	/**
 	 * Stores relation between SElementId and raId. 
 	 */
