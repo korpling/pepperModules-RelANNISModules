@@ -95,7 +95,6 @@ public class RelANNISImporter extends PepperImporterImpl implements PepperImport
 	}
 	
 	
-	
 	@Override
 	public void start(SElementId sElementId) throws PepperModuleException 
 	{
