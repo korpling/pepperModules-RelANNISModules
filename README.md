@@ -111,10 +111,10 @@ description to each single property and describes the resulting differences in t
 model.
 
 |Name of property                  |Type of property |optional/mandatory |default value|
-+----------------------------------+-----------------|-------------------|-------------| 
-relANNIS.exporter.tab_escape       |String           | optional          |--           |
-relANNIS.exporter.linebreak_escape |String           |optional           |--           |
-relANNIS.exporter.backslash_escape |String           |optional           |--           |
+|----------------------------------|-----------------|-------------------|-------------| 
+|relANNIS.exporter.tab_escape      |String           | optional          |--           |
+|relANNIS.exporter.linebreak_escape|String           |optional           |--           |
+|relANNIS.exporter.backslash_escape|String           |optional           |--           |
 
 ### relANNIS.exporter.tab_escape
 
