@@ -893,20 +893,20 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 			throw new PepperModuleException("Cannot map the SAnnotation-object to the given RANodeAnnotation-object, because sAnnotation is empty.");
 		RANodeAnnotation raNodeAnno= relANNISFactory.eINSTANCE.createRANodeAnnotation(sAnno);
 		
-//		{//compute namespace from layer
-//			String namespace= null;
-//			if (	(sAnno.getSAnnotatableElement() instanceof SNode) &&
-//					(((SNode)sAnno.getSAnnotatableElement()).getSLayers()!= null) &&
-//					(((SNode)sAnno.getSAnnotatableElement()).getSLayers().size()!= 0))
-//			{//a namespace can be taken from layers name
-//				if (((SNode)sAnno.getSAnnotatableElement()).getSLayers().get(0)!= null)
-//				{	
-//					namespace= ((SNode)sAnno.getSAnnotatableElement()).getSLayers().get(0).getSName();
-//				}
-//			}//a namespace can be taken from layers name
-//			else namespace= DEFAULT_NS;
-//			raNodeAnno.setRaNamespace(namespace);
-//		}//compute namespace from layer
+		{//compute namespace from layer
+			String namespace= null;
+			if (	(sAnno.getSAnnotatableElement() instanceof SNode) &&
+					(((SNode)sAnno.getSAnnotatableElement()).getSLayers()!= null) &&
+					(((SNode)sAnno.getSAnnotatableElement()).getSLayers().size()!= 0))
+			{//a namespace can be taken from layers name
+				if (((SNode)sAnno.getSAnnotatableElement()).getSLayers().get(0)!= null)
+				{	
+					namespace= ((SNode)sAnno.getSAnnotatableElement()).getSLayers().get(0).getSName();
+				}
+			}//a namespace can be taken from layers name
+			else namespace= RelANNISResource.DEFAULT_NS;
+			raNodeAnno.setRaNamespace(namespace);
+		}//compute namespace from layer
 		
 		return(raNodeAnno);
 	}
