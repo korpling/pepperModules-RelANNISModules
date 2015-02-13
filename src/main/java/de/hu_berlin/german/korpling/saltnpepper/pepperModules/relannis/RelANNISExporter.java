@@ -49,13 +49,14 @@ import de.hu_berlin.german.korpling.saltnpepper.salt.saltCore.SElementId;
 @Component(name="RelANNISExporterComponent", factory="PepperExporterComponentFactory")
 public class RelANNISExporter extends PepperExporterImpl implements PepperExporter
 {	
-	private static final Logger logger= LoggerFactory.getLogger(RelANNISExporter.class);
+	private static final String MODULE_NAME= "RelANNISExporter";
+	private static final Logger logger= LoggerFactory.getLogger(MODULE_NAME);
 	public RelANNISExporter()
 	{
 		super();
 
 		//setting name of module
-		setName("RelANNISExporter");
+		setName(MODULE_NAME);
 		//set list of formats supported by this module
 		this.addSupportedFormat("relANNIS", "3.1", null);
 		this.addSupportedFormat("relANNIS", "3.2", null);
@@ -253,6 +254,7 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 	@Override
 	public void end()
 	{
+		logger.debug("[{}] start export of corpus structure...",MODULE_NAME);
 		super.end();
 		
 		Long timeToExportSCorpusStructure= System.nanoTime();
