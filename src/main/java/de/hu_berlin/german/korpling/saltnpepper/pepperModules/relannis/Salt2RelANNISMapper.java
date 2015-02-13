@@ -357,8 +357,10 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 	 */
 	public double getProgress() {
 		//TODO is because of an internal bug???
-		if (currentProgress> 1)
+		if (currentProgress> 1){
 			currentProgress= 0.999999999999999;
+			logger.trace("[RelANNISExporter] An internal bug in computing progress. The value was higher than 1. ");
+		}
 		return currentProgress;
 	}
 
@@ -401,12 +403,14 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 			timeToMapSRComponents= System.nanoTime();
 			this.traverseBySRelation(SSpanningRelation.class);
 			timeToMapSRComponents= System.nanoTime() - timeToMapSRComponents;
+			currentProgress= currentProgress+0.2; 
 		//end: exporting all SStructure, SSpan and SToken elements connected with SSpanningRelation
 		
 		//start: exporting all SStructure, SSpan and SToken elements connected with SDominanceRelation
 			logger.debug("[RelANNISExporter] "+getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SDominanceRelation...");
 			timeToMapDRComponents= System.nanoTime();
 			this.traverseBySRelation(SDominanceRelation.class);
+			currentProgress= currentProgress+0.2;
 			timeToMapDRComponents= System.nanoTime() - timeToMapDRComponents;
 		//end: exporting all SStructure, SSpan and SToken elements connected with SDominanceRelation
 		
@@ -421,11 +425,6 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 				for (SToken sToken: sTokens)
 				{
 					alreadyProcessedTokens++;
-					if (((alreadyProcessedTokens *100/ sTokens.size()) - percentage)>=percentageThreshold)
-					{
-						percentage= alreadyProcessedTokens *100/ sTokens.size();
-						currentProgress= currentProgress+ percentage* 0.20;
-					}
 
 					//if element does not already have been stored
 					if (this.sElementId2RANode.get(sToken.getSElementId())== null)
@@ -478,21 +477,15 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 					}//create artificial annotation for audiosequence of SAudioDSRelation
 				}
 			}//end: map SAudioDataSource
-			
-			StringBuilder logStr= new StringBuilder();
-			logStr.append("time to map document: "+this.getsDocGraph().getSDocument().getSName()+"\n");
-			logStr.append("\ttime to map spanning-relation-components:\t"+(timeToMapSRComponents/ 1000000)+"\n");
-			logStr.append("\ttime to map dominance-relation-components:\t"+(timeToMapDRComponents/ 1000000)+"\n");
-			logStr.append("\ttime to map pointing-relation-components:\t"+(timeToMapPRComponents/ 1000000)+"\n");
-			logStr.append("\ttime to map lonely-components:\t\t"+(timeToMapLonlyComponents/ 1000000)+"\n");
-			logger.debug("[RelANNISExporter] "+logStr.toString());
+			currentProgress= currentProgress+0.2;
 		//end: Export all tokens who aren't connected by (SSPANNING_RELATION, SPOINTING_RELATION or SDOMINANCE_RELATION)
 			
-			//start: exporting all SStructuredNodes connected with SPointingRelation
+		//start: exporting all SStructuredNodes connected with SPointingRelation
 			logger.debug("[RelANNISExporter] "+getsDocGraph().getSElementId().getSId()+ ": relANNISExporter computing components for SPointingRelation...");
 			timeToMapPRComponents= System.nanoTime();
 			this.traverseBySRelation(SPointingRelation.class);
 			timeToMapPRComponents= System.nanoTime() - timeToMapPRComponents;
+			currentProgress= currentProgress+0.2;
 		//end: exporting all SStructuredNodes connected with SPointingRelation
 			
 		//start: exporting all SNodes connected with SOrderRelation
@@ -503,8 +496,6 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 				if (roots!= null)
 				{
 					Set<String> segmentNames= roots.keySet();
-					double percentage= 0;
-					int alreadyProcessedRoots= 0;
 					for (String segmentName: segmentNames)
 					{//walk through every slot
 						//sets traversion to be not cycle safe
@@ -512,16 +503,22 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 							SOrderRelationTraverser traverser= new SOrderRelationTraverser();
 							traverser.sElementId2RANode= this.sElementId2RANode;
 							this.getsDocGraph().traverse(roots.get(segmentName), GRAPH_TRAVERSE_TYPE.TOP_DOWN_DEPTH_FIRST, "sOrderRelation", traverser, true);
-							alreadyProcessedRoots++;
-							percentage= alreadyProcessedRoots/ roots.size();
-							currentProgress= currentProgress+ percentage* 0.20;
 						}catch (Exception e) {
 							throw new PepperModuleException("Some error occurs while traversing corpus structure graph.", e);
 						}
 					}
 				}			
 			}
+			currentProgress= currentProgress+0.2;
 		//end: exporting all SNodes connected with SOrderRelation
+			StringBuilder logStr= new StringBuilder();
+			logStr.append("time to map document: "+this.getsDocGraph().getSDocument().getSName()+"\n");
+			logStr.append("\ttime to map spanning-relation-components:\t"+(timeToMapSRComponents/ 1000000)+"\n");
+			logStr.append("\ttime to map dominance-relation-components:\t"+(timeToMapDRComponents/ 1000000)+"\n");
+			logStr.append("\ttime to map pointing-relation-components:\t"+(timeToMapPRComponents/ 1000000)+"\n");
+			logStr.append("\ttime to map lonely-components:\t\t"+(timeToMapLonlyComponents/ 1000000)+"\n");
+			logger.debug("[RelANNISExporter] "+logStr.toString());
+	
 	}
 	
 	/** determines the threshold of process, which invokes a notification about it **/
@@ -536,16 +533,8 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 	{
 		if (roots!= null)
 		{
-			int alreadyProcessedRoots= 0;
-			int percentage= 0;
 			for (SNode subRoot: roots)
 			{//walk through every root
-				alreadyProcessedRoots++;
-				if (((alreadyProcessedRoots *100/ roots.size()) - percentage)>=percentageThreshold)
-				{//notify the pepper-framework about progress
-					percentage= alreadyProcessedRoots * 100/ roots.size();
-					currentProgress= currentProgress+ percentage* factor;
-				}//notify the pepper-framework about progress
 				
 				this.currRaComponent= relANNISFactory.eINSTANCE.createRAComponent();
 				if (	(roots== null) ||
