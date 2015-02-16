@@ -1276,17 +1276,31 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 							(sRelation.getSTypes()!= null) &&
 							(sRelation.getSTypes().size()> 0))
 					{//do only if relation has a sub type
-						//if the current sRelation belongs to current component
-						if (this.currComponentId.equals(this.computeConnectedComponentId(sRelation)))
+						if (this.currComponentId.equals(this.computeConnectedComponentId(sRelation))){
+							//if the current sRelation belongs to current component
 							retVal= true;
-						//if the current sRelation doesn't belongs to current component
-						else retVal= false;
+						}else{
+							//if the current sRelation doesn't belongs to current component
+							retVal= false;
+						}
+						if (edge instanceof SPointingRelation){
+//						if (this.currTraversionType== TRAVERSION_TYPE.DOCUMENT_STRUCTURE_PR_SUB){
+							if (hasVisited(sRelation)){
+								System.out.println("-------> Cycle with "+edge.getSSource().getSId()+" --> "+edge.getSTarget().getSId());
+								System.out.println("-------> Cycle with "+edge+" in: "+visitedSRelations);
+								retVal= false;
+							}else{
+								this.markAsVisited(sRelation);
+							}
+						}
 					}//do only if relation has a sub type
-					else if (sRelation== null)
-					{//first relation of sub component has to be null
+					else if (sRelation== null){
+						//first relation of sub component has to be null
 						retVal= true;
-					}//first relation of sub component has to be null
-					else retVal= false;
+					}else{
+						//first relation of sub component has to be null
+						retVal= false;
+					}
 				}//traversion of sub components
 			}
 		}//traversing document structure
@@ -1525,7 +1539,12 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 						}
 						this.mapSRelation2RARank(sRelation, currSNode, this.currRaComponent, currLastRARank, raNode, raRank);
 						this.getRaDocGraph().addSRelation(raRank);
-						
+						if (raRank.getSId().contains("_")){
+							System.out.println("sRelation: "+ sRelation);
+							
+							throw new NullPointerException("WE HAVE AN UNDERSCORE in: "+ raRank.getSId());
+							
+						}
 						{//necessary for setting edge.source to parentRank.raNode
 							if (this.parentRank2Rank== null)
 								this.parentRank2Rank= new Hashtable<RARank, EList<RARank>>();
@@ -1574,6 +1593,9 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 
 	private String KW_NS= "s2ra";
 	private String KW_NAME_PRE= "pre";
+	
+	/** A set to store already visited pointing relations to avoid cycles **/
+	private Set<SPointingRelation> visitedSPointingRelations= new HashSet<SPointingRelation>();
 
 	@Override
 	public void nodeReached(	GRAPH_TRAVERSE_TYPE traversalType,
@@ -1621,11 +1643,6 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 					(this.currTraversionType== TRAVERSION_TYPE.DOCUMENT_STRUCTURE_DR_SUB)||
 					(this.currTraversionType== TRAVERSION_TYPE.DOCUMENT_STRUCTURE_PR_SUB))
 		{//traversing document structure
-			if (this.currTraversionType== TRAVERSION_TYPE.DOCUMENT_STRUCTURE_PR_SUB){
-				if (edge!= null){
-					System.out.println("---> PR via: "+ edge + ": "+((SRelation)edge).getSTypes());
-				}
-			}
 			{//resets list of current tokens, because  new sub tree is reached
 				if (edge== null)
 				{
@@ -1693,16 +1710,17 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 		else return(false);
 	}
 	
-	private Map<SElementId, Boolean> visitedSRelations= null;
+	private Set<SElementId> visitedSRelations= null;
 	/**
 	 * Marks the given node as visited.
 	 * @param raRank
 	 */
 	private void markAsVisited(SRelation SRelation)
 	{
-		if (this.visitedSRelations== null)
-			this.visitedSRelations= new Hashtable<SElementId, Boolean>();
-		this.visitedSRelations.put(SRelation.getSElementId(), true);
+		if (this.visitedSRelations== null){
+			this.visitedSRelations= new HashSet<SElementId>();
+		}
+		this.visitedSRelations.add(SRelation.getSElementId());
 	}
 	
 	/**
@@ -1712,11 +1730,14 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 	 */
 	private boolean hasVisited(SRelation SRelation)
 	{
-		if (this.visitedSRelations== null)
-			this.visitedSRelations= new Hashtable<SElementId, Boolean>();
-		if (visitedSRelations.containsKey(SRelation.getSElementId()))
+		if (this.visitedSRelations== null){
+			this.visitedSRelations= new HashSet<SElementId>();
+		}
+		if (visitedSRelations.contains(SRelation.getSElementId())){
 			return(true);
-		else return(false);
+		}else{
+			return(false);
+		}
 	}
 // ========================================= start: handling to check if node or relation has been visited
 }
