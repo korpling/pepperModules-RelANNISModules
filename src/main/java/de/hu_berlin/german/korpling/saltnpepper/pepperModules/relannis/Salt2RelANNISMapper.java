@@ -1281,14 +1281,18 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 							//if the current sRelation doesn't belongs to current component
 							retVal= false;
 						}
-						if (edge instanceof SPointingRelation){
-//						if (this.currTraversionType== TRAVERSION_TYPE.DOCUMENT_STRUCTURE_PR_SUB){
-							if (hasVisited(sRelation)){
-								System.out.println("-------> Cycle with "+edge.getSSource().getSId()+" --> "+edge.getSTarget().getSId());
-								System.out.println("-------> Cycle with "+edge+" in: "+visitedSRelations);
+						if (	(edge instanceof SPointingRelation)&&
+								(this.currTraversionType== TRAVERSION_TYPE.DOCUMENT_STRUCTURE_PR_SUB)){
+							if (sRelation.getSSource().equals(sRelation.getSTarget())){
 								retVal= false;
+								logger.warn("Cannot export relation "+sRelation.getSId()+", because its source and target points to the same node '"+sRelation.getSSource().getSId()+"'. ");
 							}else{
-								this.markAsVisited(sRelation);
+								if (hasVisited(sRelation)){
+									retVal= false;
+								}else{
+									this.markAsVisited(sRelation);
+									retVal= true;
+								}
 							}
 						}
 					}//do only if relation has a sub type
@@ -1537,12 +1541,6 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 						}
 						this.mapSRelation2RARank(sRelation, currSNode, this.currRaComponent, currLastRARank, raNode, raRank);
 						this.getRaDocGraph().addSRelation(raRank);
-						if (raRank.getSId().contains("_")){
-							System.out.println("sRelation: "+ sRelation);
-							
-							throw new NullPointerException("WE HAVE AN UNDERSCORE in: "+ raRank.getSId());
-							
-						}
 						{//necessary for setting edge.source to parentRank.raNode
 							if (this.parentRank2Rank== null)
 								this.parentRank2Rank= new Hashtable<RARank, EList<RARank>>();
@@ -1669,14 +1667,10 @@ public class Salt2RelANNISMapper implements SGraphTraverseHandler
 				}
 			}//add pre value
 		}//traversing document structure
-		else if (this.currTraversionType== TRAVERSION_TYPE.DOCUMENT_STRUCTURE_OR)
-		{//traversing SOrderRelation
+		else if (this.currTraversionType== TRAVERSION_TYPE.DOCUMENT_STRUCTURE_OR){
+			//traversing SOrderRelation
 			SOrderRelation sOrderRel= (SOrderRelation) edge;
-//			System.out.println(fromNode.getId()+"--"+sOrderRel.getSTypes()+"-->"+currNode.getId());
-		}//traversing SOrderRelation
-		{//for testing
-//			System.out.println("----------> node reached: "+currNode.getId());
-		}//for testing			
+		}
 	}	
 	
 // ========================================= start: handling to check if node or relation has been visited	
