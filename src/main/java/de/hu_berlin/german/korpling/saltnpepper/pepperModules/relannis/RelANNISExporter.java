@@ -267,6 +267,7 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 				sCorpGraph= (SCorpusGraph) this.getSaltProject().getSCorpusGraphs().get(0);
 			
 			if (	(sCorpGraph!= null)&&
+					(raCorpusGraph!= null)&&
 					(sCorpGraph.getSCorpora().size()>0))
 			{//only, if corpus graph is not empty
 				Salt2RelANNISMapper mapper= new Salt2RelANNISMapper();
@@ -307,6 +308,8 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 			msg.append("\t total time to save all document-structures:\t\t"+ totalTimeToSaveSDocument / 1000000+"\n");
 			msg.append("\t total time to map all document-structure from salt:\t"+ totalTimeToMapSDocument / 1000000+"\n");
 			logger.debug(msg.toString());
+		}else{
+			logger.warn("[RelANNISExporter] Nothing to export. ");
 		}
 	}
 }
