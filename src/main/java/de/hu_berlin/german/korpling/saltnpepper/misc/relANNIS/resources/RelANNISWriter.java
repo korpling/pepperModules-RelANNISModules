@@ -538,7 +538,7 @@ public class RelANNISWriter implements Runnable
 				if (raCorpusAnnotation.getRaName()== null) tuple.add(KW_NULL_VALUE);
 				else tuple.add(cleanString(raCorpusAnnotation.getRaName(), true));
 				if (raCorpusAnnotation.getRaValue()== null) tuple.add(KW_NULL_VALUE);
-				else tuple.add(cleanString(raCorpusAnnotation.getRaValue(), true));
+				else tuple.add(cleanString(raCorpusAnnotation.getRaValue(), false));
 				try {
 					this.getCorpusAnnotationTWriter().addTuple(TAId, tuple);
 				} catch (FileNotFoundException e) 
