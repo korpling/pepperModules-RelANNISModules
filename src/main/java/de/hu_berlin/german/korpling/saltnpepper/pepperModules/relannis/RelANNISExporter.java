@@ -24,6 +24,7 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.osgi.service.component.annotations.Component;
@@ -57,6 +58,9 @@ public class RelANNISExporter extends PepperExporterImpl implements PepperExport
 
 		//setting name of module
 		setName(MODULE_NAME);
+	    setSupplierContact(URI.createURI("saltnpepper@lists.hu-berlin.de"));
+		setSupplierHomepage(URI.createURI("https://github.com/korpling/pepperModules-RelANNISModules"));
+		setDesc("This exporter transforms a Salt model into the relANNIS format. ");
 		//set list of formats supported by this module
 		this.addSupportedFormat("relANNIS", "3.1", null);
 		this.addSupportedFormat("relANNIS", "3.2", null);
